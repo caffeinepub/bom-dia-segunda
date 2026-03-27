@@ -298,12 +298,6 @@ export default function Vagas({
       <div className="max-w-6xl mx-auto">
         {/* Section header */}
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Vagas da Semana
-          </h2>
-          <p className="text-gray-500 mb-4">
-            Oportunidades selecionadas para a região Sul Fluminense
-          </p>
           <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[#d7350d] text-[#d7350d] text-sm font-semibold">
             <Calendar className="w-4 h-4" />
             {getWeekPeriod()}

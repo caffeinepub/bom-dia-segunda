@@ -8,6 +8,7 @@ import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Loja from "@/components/Loja";
 import Mentoria from "@/components/Mentoria";
+import PublicarVaga from "@/components/PublicarVaga";
 import Vagas from "@/components/Vagas";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
 import AdminPanel from "@/components/admin/AdminPanel";
@@ -17,11 +18,11 @@ import { useEffect, useState } from "react";
 export default function App() {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [searchCity, setSearchCity] = useState("Todas");
-  const [isAdmin, setIsAdmin] = useState(window.location.hash === "#admin");
+  const [currentHash, setCurrentHash] = useState(window.location.hash);
 
   useEffect(() => {
     function onHashChange() {
-      setIsAdmin(window.location.hash === "#admin");
+      setCurrentHash(window.location.hash);
     }
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
@@ -32,10 +33,19 @@ export default function App() {
     setSearchCity(city);
   };
 
-  if (isAdmin) {
+  if (currentHash === "#admin") {
     return (
       <>
         <AdminPanel />
+        <Toaster />
+      </>
+    );
+  }
+
+  if (currentHash === "#publicar-vaga") {
+    return (
+      <>
+        <PublicarVaga />
         <Toaster />
       </>
     );

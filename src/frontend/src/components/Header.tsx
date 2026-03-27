@@ -23,6 +23,11 @@ function Logo() {
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
 
+  function handlePublicarVaga() {
+    window.location.hash = "publicar-vaga";
+    setMenuOpen(false);
+  }
+
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-md">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -45,16 +50,9 @@ export default function Header() {
 
         <div className="hidden md:flex items-center gap-2">
           <Button
-            variant="outline"
-            size="sm"
-            className="border-gray-600 text-gray-800 hover:bg-gray-100"
-            data-ocid="header.secondary_button"
-          >
-            Cadastrar CV
-          </Button>
-          <Button
             size="sm"
             className="bg-primary hover:bg-primary/90 text-white"
+            onClick={handlePublicarVaga}
             data-ocid="header.primary_button"
           >
             Publicar Vaga
@@ -94,16 +92,9 @@ export default function Header() {
           ))}
           <div className="flex flex-col gap-2 pt-2 border-t border-gray-200">
             <Button
-              variant="outline"
-              size="sm"
-              className="border-gray-300 text-gray-800"
-              data-ocid="header.secondary_button"
-            >
-              Cadastrar CV
-            </Button>
-            <Button
               size="sm"
               className="bg-primary text-white"
+              onClick={handlePublicarVaga}
               data-ocid="header.primary_button"
             >
               Publicar Vaga
