@@ -4,7 +4,7 @@ const quickLinks = [
   { label: "Encontrar Vagas", href: "#vagas" },
   { label: "Avaliar Currículo", href: "#avaliador" },
   { label: "Mentoria", href: "#mentoria" },
-  { label: "MERCADO & TRABALHO", href: "#blog" },
+  { label: "Mercado & trabalho", href: "#blog" },
   { label: "Bom Dia Segunda Shopping", href: "#loja" },
   { label: "Sobre Nós", href: "#contato" },
   { label: "Publicar Vaga", href: "#contato" },
