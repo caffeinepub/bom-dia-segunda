@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { useActor } from "@/hooks/useActor";
 import { Principal } from "@icp-sdk/core/principal";
@@ -273,6 +274,23 @@ export default function Avaliador() {
   const scoreColor = (v: number) =>
     v < 40 ? "#EF4444" : v < 70 ? "#F59E0B" : "#22C55E";
 
+  const atsLabel = (v: number) =>
+    v < 40
+      ? "Baixo — precisa de melhorias urgentes"
+      : v < 70
+        ? "Médio — bom potencial, ajustes necessários"
+        : "Alto — currículo bem otimizado para ATS";
+
+  const atsBg = (v: number) =>
+    v < 40
+      ? "bg-red-50 border-red-200"
+      : v < 70
+        ? "bg-amber-50 border-amber-200"
+        : "bg-green-50 border-green-200";
+
+  const atsText = (v: number) =>
+    v < 40 ? "text-red-600" : v < 70 ? "text-amber-600" : "text-green-600";
+
   return (
     <section id="avaliador" className="py-16 px-4 bg-background">
       <div className="max-w-6xl mx-auto">
@@ -295,11 +313,12 @@ export default function Avaliador() {
           </p>
         </div>
 
+        {/* Top two-column layout: form + info cards */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* LEFT: Upload form */}
           <div className="bg-card rounded-2xl border border-border shadow-card p-6">
             <h3 className="font-semibold text-lg mb-5">Envie seu Currículo</h3>
 
-            {/* File upload dropzone */}
             <label
               htmlFor="file-upload"
               className="border-2 border-dashed border-border rounded-xl p-6 text-center mb-4 cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors block"
@@ -330,7 +349,6 @@ export default function Avaliador() {
               />
             </label>
 
-            {/* LGPD disclaimer */}
             <div className="flex gap-3 items-start bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 mb-5">
               <ShieldCheck className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
               <p className="text-xs text-blue-700 leading-relaxed">
@@ -340,7 +358,6 @@ export default function Avaliador() {
               </p>
             </div>
 
-            {/* Lead capture fields */}
             <div className="space-y-4 mb-5">
               <div>
                 <Label
@@ -443,7 +460,6 @@ export default function Avaliador() {
               </div>
             </div>
 
-            {/* Optional fields */}
             <div className="mb-4">
               <Label
                 htmlFor="job-desc"
@@ -510,6 +526,7 @@ export default function Avaliador() {
             )}
           </div>
 
+          {/* RIGHT: Info cards */}
           <div className="space-y-4">
             {[
               {
@@ -557,16 +574,19 @@ export default function Avaliador() {
           </div>
         </div>
 
+        {/* Results section */}
         {result && (
-          <div
-            id="resultado-cv"
-            className="mt-10 bg-card rounded-2xl border border-border shadow-card p-8"
-          >
-            <h3 className="font-bold text-xl mb-8 text-center">
-              Resultado da Avaliação
-            </h3>
+          <div id="resultado-cv" className="mt-10">
+            {/* Header */}
+            <div className="bg-card rounded-2xl border border-border shadow-card p-6 mb-6 text-center">
+              <h3 className="font-bold text-xl mb-2">Resultado da Avaliação</h3>
+              <p className="text-sm text-muted-foreground">
+                Análise completa do seu currículo com pontuações e recomendações
+              </p>
+            </div>
 
-            <div className="flex flex-wrap justify-center gap-10 mb-8">
+            {/* Row 1: Score rings */}
+            <div className="bg-card rounded-2xl border border-border p-6 mb-6 flex flex-wrap justify-center gap-10">
               <ScoreRing
                 value={result.overallScore}
                 label="Score Geral"
@@ -584,79 +604,163 @@ export default function Avaliador() {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <div>
-                <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-500" />{" "}
-                  Competências Identificadas
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {result.competencies.map((c) => (
+            {/* Row 2: 2x2 grid of result cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              {/* Card 1: Pontuação ATS */}
+              <div className="bg-card rounded-2xl border border-border p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <Target className="w-5 h-5 text-primary" />
+                  </div>
+                  <h4 className="font-semibold text-base">Pontuação ATS</h4>
+                </div>
+
+                <div
+                  className={`rounded-xl border p-4 mb-4 ${atsBg(result.atsScore)}`}
+                >
+                  <div className="flex items-end justify-between mb-2">
                     <span
-                      key={c}
-                      className="text-xs bg-green-50 text-green-700 border border-green-200 px-3 py-1 rounded-full"
+                      className={`text-4xl font-black ${atsText(result.atsScore)}`}
                     >
-                      {c}
+                      {result.atsScore}
                     </span>
-                  ))}
+                    <span
+                      className={`text-sm font-semibold ${atsText(result.atsScore)}`}
+                    >
+                      /100
+                    </span>
+                  </div>
+                  <p
+                    className={`text-xs font-medium mb-3 ${atsText(result.atsScore)}`}
+                  >
+                    {atsLabel(result.atsScore)}
+                  </p>
+                  <Progress
+                    value={result.atsScore}
+                    className="h-3 rounded-full"
+                  />
+                </div>
+
+                <div className="space-y-2 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-red-400 shrink-0" />
+                    <span>0–39: Baixo — reformulação necessária</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+                    <span>40–69: Médio — ajustes podem melhorar bastante</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-green-400 shrink-0" />
+                    <span>
+                      70+: Alto — boa compatibilidade com sistemas ATS
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
-                  <Star className="w-4 h-4 text-amber-500" /> Pontos a Destacar
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {result.highlightSkills.map((s) => (
-                    <span
-                      key={s}
-                      className="text-xs bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1 rounded-full"
-                    >
-                      {s}
-                    </span>
-                  ))}
+              {/* Card 2: Competências Identificadas */}
+              <div className="bg-card rounded-2xl border border-border p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  </div>
+                  <h4 className="font-semibold text-base">
+                    Competências Identificadas
+                  </h4>
+                </div>
+
+                <div className="mb-4">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                    Competências mapeadas
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {result.competencies.map((c) => (
+                      <span
+                        key={c}
+                        className="text-xs bg-green-50 text-green-700 border border-green-200 px-3 py-1 rounded-full font-medium"
+                      >
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                    Pontos a Destacar
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {result.highlightSkills.map((s) => (
+                      <span
+                        key={s}
+                        className="text-xs bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1 rounded-full font-medium"
+                      >
+                        {s}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-red-500" /> Sugestões de
-                  Melhoria
-                </h4>
-                <ol className="space-y-2">
+              {/* Card 3: Sugestões de Melhoria */}
+              <div className="bg-card rounded-2xl border border-border p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
+                    <AlertCircle className="w-5 h-5 text-red-500" />
+                  </div>
+                  <h4 className="font-semibold text-base">
+                    Sugestões de Melhoria
+                  </h4>
+                </div>
+
+                <ol className="space-y-3">
                   {result.improvements.map((imp, idx) => (
                     <li
                       key={imp}
-                      className="flex gap-2 text-xs text-muted-foreground"
+                      className="flex gap-3 text-sm text-muted-foreground"
                     >
-                      <span className="w-5 h-5 rounded-full bg-red-50 text-red-600 font-bold flex items-center justify-center shrink-0 text-[10px]">
+                      <span className="w-6 h-6 rounded-full bg-red-100 text-red-600 font-bold flex items-center justify-center shrink-0 text-xs mt-0.5">
                         {idx + 1}
                       </span>
-                      {imp}
+                      <span className="leading-relaxed">{imp}</span>
                     </li>
                   ))}
                 </ol>
               </div>
 
-              <div>
-                <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
-                  <Linkedin className="w-4 h-4 text-blue-500" /> Dicas LinkedIn
-                </h4>
-                <ul className="space-y-2">
+              {/* Card 4: Análise LinkedIn */}
+              <div className="bg-card rounded-2xl border border-border p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                    <Linkedin className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <h4 className="font-semibold text-base">Análise LinkedIn</h4>
+                </div>
+
+                <p className="text-xs text-muted-foreground mb-4 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
+                  Dicas para otimizar seu perfil e aumentar a visibilidade para
+                  recrutadores.
+                </p>
+
+                <ul className="space-y-3">
                   {result.linkedinTips.map((tip) => (
                     <li
                       key={tip}
-                      className="flex gap-2 text-xs text-muted-foreground"
+                      className="flex gap-3 text-sm text-muted-foreground"
                     >
-                      <span className="text-blue-400 mt-0.5">→</span>
-                      {tip}
+                      <span className="text-blue-500 font-bold shrink-0 mt-0.5">
+                        →
+                      </span>
+                      <span className="leading-relaxed">{tip}</span>
                     </li>
                   ))}
                 </ul>
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-gray-900 to-red-600 rounded-xl p-6 text-white text-center mb-4">
+            {/* CTA Mentoria banner */}
+            <div className="bg-gradient-to-r from-gray-900 to-red-600 rounded-xl p-6 text-white text-center mb-6">
               <h4 className="font-bold text-lg mb-2">
                 Quer um currículo profissional de verdade?
               </h4>
@@ -674,6 +778,7 @@ export default function Avaliador() {
               </Button>
             </div>
 
+            {/* Report request card */}
             <div className="bg-card border border-border rounded-xl p-6 text-center">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
                 <FileText className="w-6 h-6 text-primary" />
