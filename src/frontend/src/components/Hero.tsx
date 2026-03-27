@@ -26,8 +26,8 @@ export default function Hero({ onSearch }: HeroProps) {
           <span className="text-orange-300">Sul Fluminense</span>
         </h1>
         <p className="text-white/80 text-lg mb-10">
-          Vagas em Volta Redonda, Barra Mansa, Resende, Angra dos Reis e toda a
-          região Sul e Centro-Sul Fluminense — atualizadas toda semana.
+          Vagas atualizadas para você começar a semana com novas oportunidades
+          de carreira.
         </p>
 
         {/* Search Bar */}
