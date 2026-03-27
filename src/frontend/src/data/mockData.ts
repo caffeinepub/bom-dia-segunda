@@ -8,6 +8,7 @@ import imgCursoOratoria from "/assets/generated/curso-oratoria.dim_300x400.jpg";
 import imgEbookCurriculo from "/assets/generated/ebook-curriculo.dim_300x400.jpg";
 import imgEbookLinkedin from "/assets/generated/ebook-linkedin.dim_300x400.jpg";
 import imgEbookPrimeiroEmprego from "/assets/generated/ebook-primeiro-emprego.dim_300x400.jpg";
+import imgLivroNetworking from "/assets/generated/livro-networking.dim_180x135.jpg";
 
 export interface Job {
   id: string;
@@ -15,7 +16,13 @@ export interface Job {
   company: string;
   city: string;
   salary: string;
-  type: "CLT" | "Estágio" | "Jovem Aprendiz" | "PCD" | "PJ" | "Remoto";
+  type:
+    | "Efetiva"
+    | "Temporária"
+    | "Estágio"
+    | "Menor Aprendiz"
+    | "Remota"
+    | "PCD";
   badge?: "Nova" | "Urgente" | "PCD" | "Jovem Aprendiz";
   deadline: string;
   source: string;
@@ -32,7 +39,7 @@ export const JOBS: Job[] = [
     company: "CSN - Companhia Siderúrgica Nacional",
     city: "Volta Redonda",
     salary: "R$ 3.500 - R$ 4.800",
-    type: "CLT",
+    type: "Efetiva",
     badge: "Nova",
     deadline: "30/03/2026",
     source: "SINE",
@@ -54,7 +61,7 @@ export const JOBS: Job[] = [
     company: "Michelin do Brasil",
     city: "Resende",
     salary: "R$ 2.800 - R$ 3.200",
-    type: "CLT",
+    type: "Efetiva",
     badge: "Urgente",
     deadline: "28/03/2026",
     source: "Gupy",
@@ -101,11 +108,11 @@ export const JOBS: Job[] = [
   },
   {
     id: "5",
-    title: "Jovem Aprendiz - Logística",
+    title: "Menor Aprendiz - Logística",
     company: "Magazine Luiza",
     city: "Volta Redonda",
     salary: "R$ 1.072 + vale transporte",
-    type: "Jovem Aprendiz",
+    type: "Menor Aprendiz",
     badge: "Jovem Aprendiz",
     deadline: "20/04/2026",
     source: "CIEE",
@@ -120,7 +127,7 @@ export const JOBS: Job[] = [
     company: "Startup TechVale",
     city: "Resende",
     salary: "R$ 6.000 - R$ 9.000",
-    type: "CLT",
+    type: "Efetiva",
     badge: "Nova",
     deadline: "10/04/2026",
     source: "LinkedIn",
@@ -145,7 +152,7 @@ export const JOBS: Job[] = [
     company: "Votorantim Metais",
     city: "Barra do Piraí",
     salary: "R$ 3.200 - R$ 4.500",
-    type: "CLT",
+    type: "Efetiva",
     deadline: "12/04/2026",
     source: "Vagas.com",
     applyUrl: "https://www.votorantim.com.br/carreiras/",
@@ -159,7 +166,7 @@ export const JOBS: Job[] = [
     company: "Escritório Contábil Lima & Associados",
     city: "Valença",
     salary: "R$ 1.800 - R$ 2.400",
-    type: "CLT",
+    type: "Temporária",
     deadline: "25/03/2026",
     source: "Catho",
     applyUrl: "https://www.catho.com.br/vagas/assistente-contabilidade/",
@@ -173,7 +180,7 @@ export const JOBS: Job[] = [
     company: "Hospital Regional do Médio Paraíba",
     city: "Volta Redonda",
     salary: "R$ 4.200 - R$ 5.500",
-    type: "CLT",
+    type: "Efetiva",
     badge: "Urgente",
     deadline: "27/03/2026",
     source: "Gupy",
@@ -221,13 +228,12 @@ export const CITIES = [
 ];
 
 export const JOB_TYPES = [
-  "Todos",
-  "CLT",
+  "Efetiva",
+  "Temporária",
   "Estágio",
-  "Jovem Aprendiz",
+  "Menor Aprendiz",
+  "Remota",
   "PCD",
-  "PJ",
-  "Remoto",
 ];
 
 export interface Product {
@@ -237,6 +243,7 @@ export interface Product {
   price: string;
   image: string;
   buyUrl: string;
+  badge?: string;
 }
 
 export const PRODUCTS: Product[] = [
@@ -295,6 +302,15 @@ export const PRODUCTS: Product[] = [
     price: "R$ 39,90",
     image: imgCaneca2,
     buyUrl: "#",
+  },
+  {
+    id: "8",
+    title: "O Poder do Networking — Conexões que Transformam Carreiras",
+    author: "Recomendação BDS",
+    price: "R$ 34,90",
+    image: imgLivroNetworking,
+    buyUrl: "#",
+    badge: "recomendação de leitura BDS",
   },
 ];
 

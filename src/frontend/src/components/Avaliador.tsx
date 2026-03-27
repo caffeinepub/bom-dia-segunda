@@ -260,11 +260,21 @@ export default function Avaliador() {
     <section id="avaliador" className="py-16 px-4 bg-background">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-foreground mb-2">
-            Avaliador de Currículo
+          <h2 className="text-3xl font-bold mb-2 tracking-wide">
+            <span style={{ color: "#1a1a1a" }}>B</span>
+            <span style={{ color: "#d7350d" }}>D</span>
+            <span style={{ color: "#1a1a1a" }}>S</span>
+            <span style={{ color: "#1a1a1a" }}> AVALIADOR DE CURRÍCULO</span>
           </h2>
-          <p className="text-muted-foreground">
-            Análise inteligente com score ATS e dicas personalizadas
+          <p
+            className="font-bold text-foreground mb-1"
+            style={{ fontSize: "18px" }}
+          >
+            Seu currículo está pronto para o mercado de trabalho?
+          </p>
+          <p className="text-foreground" style={{ fontSize: "14px" }}>
+            Descubra agora com nossa análise gratuita e aumente as chances de
+            ser contratado
           </p>
         </div>
 

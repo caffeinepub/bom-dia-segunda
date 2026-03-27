@@ -1,7 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { PRODUCTS } from "@/data/mockData";
 import { useActor } from "@/hooks/useActor";
-import { ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
+import {
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  ShoppingCart,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface ProductDisplay {
@@ -11,6 +16,7 @@ interface ProductDisplay {
   price: string;
   image: string;
   buyUrl: string;
+  badge?: string;
 }
 
 function mockToDisplay(p: (typeof PRODUCTS)[0]): ProductDisplay {
@@ -21,6 +27,7 @@ function mockToDisplay(p: (typeof PRODUCTS)[0]): ProductDisplay {
     price: p.price,
     image: p.image,
     buyUrl: p.buyUrl,
+    badge: p.badge,
   };
 }
 
@@ -77,10 +84,10 @@ export default function Loja() {
             className="text-3xl font-bold mb-2"
             style={{ fontStyle: "italic" }}
           >
-            <span style={{ color: "#1a1a1a" }}>BOM </span>
-            <span style={{ color: "#d7350d" }}>DIA </span>
-            <span style={{ color: "#1a1a1a" }}>SEGUNDA </span>
-            <span style={{ color: "#1a1a1a" }}>SHOPPING</span>
+            <span style={{ color: "#1a1a1a" }}>BOM</span>
+            <span style={{ color: "#d7350d" }}>DIA</span>
+            <span style={{ color: "#1a1a1a" }}>SEGUNDA</span>
+            <span style={{ color: "#1a1a1a" }}> SHOPPING</span>
           </h2>
           <p className="text-muted-foreground">
             E-books, cursos e produtos para impulsionar sua carreira
@@ -150,12 +157,18 @@ function ProductCard({ product }: { product: ProductDisplay }) {
       className="bg-card rounded-xl overflow-hidden shadow-card border border-border card-hover flex flex-col"
       data-ocid={`loja.item.${product.id}`}
     >
-      <div className="aspect-[3/4] overflow-hidden bg-muted">
+      <div className="aspect-[3/4] overflow-hidden bg-muted relative">
         <img
           src={product.image}
           alt={product.title}
           className="w-full h-full object-cover"
         />
+        {product.badge && (
+          <span className="absolute top-2 left-2 bg-primary text-white text-[10px] font-bold px-2 py-1 rounded-full leading-tight text-center max-w-[90%] flex items-center gap-1">
+            <BookOpen className="w-3 h-3 shrink-0" />
+            {product.badge}
+          </span>
+        )}
       </div>
       <div className="p-4 flex flex-col flex-1">
         <h3 className="font-semibold text-sm text-foreground mb-1 line-clamp-2 flex-1">

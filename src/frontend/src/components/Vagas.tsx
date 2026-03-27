@@ -4,90 +4,85 @@ import { useActor } from "@/hooks/useActor";
 import {
   ArrowRight,
   Briefcase,
+  Calendar,
   Clock,
   DollarSign,
   ExternalLink,
   Globe,
   MapPin,
   Upload,
-  Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const badgeStyles: Record<string, string> = {
   Nova: "bg-green-100 text-green-700 border-green-200",
   Urgente: "bg-red-100 text-red-700 border-red-200",
-  PCD: "bg-purple-100 text-purple-700 border-purple-200",
-  "Jovem Aprendiz": "bg-blue-100 text-blue-700 border-blue-200",
+  PCD: "bg-blue-100 text-blue-700 border-blue-200",
+  "Jovem Aprendiz": "bg-purple-100 text-purple-700 border-purple-200",
+  Estágio: "bg-yellow-100 text-yellow-700 border-yellow-200",
+  Remoto: "bg-gray-100 text-gray-700 border-gray-200",
 };
 
-const areaColors: Record<string, string> = {
-  RH: "from-orange-400 to-red-500",
-  Produção: "from-blue-400 to-indigo-500",
-  Engenharia: "from-teal-400 to-cyan-500",
-  Administrativo: "from-gray-400 to-slate-500",
-  Logística: "from-yellow-400 to-amber-500",
-  TI: "from-violet-400 to-purple-500",
-  Manutenção: "from-orange-400 to-orange-600",
-  Contabilidade: "from-green-400 to-emerald-500",
-  Saúde: "from-pink-400 to-rose-500",
-};
+function getWeekPeriod() {
+  const today = new Date();
+  const day = today.getDay(); // 0=Sun, 1=Mon...
+  const diff = day === 0 ? -6 : 1 - day;
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + diff);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  const fmt = (d: Date) =>
+    d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+  return `Semana de ${fmt(monday)} a ${fmt(sunday)}`;
+}
 
 function JobCard({ job }: { job: Job }) {
-  const gradient = areaColors[job.area] || "from-gray-400 to-gray-600";
+  const badge = Array.isArray(job.badge) ? job.badge[0] : job.badge;
   return (
-    <div className="bg-card rounded-xl overflow-hidden shadow-card card-hover border border-border">
-      <div
-        className={`h-20 bg-gradient-to-br ${gradient} flex items-center justify-center`}
-      >
-        <Briefcase className="w-8 h-8 text-white/80" />
-      </div>
-      <div className="p-4">
-        {job.badge && (
+    <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 flex flex-col">
+      <div className="p-5 flex-1">
+        {badge && (
           <span
-            className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full border mb-2 ${badgeStyles[job.badge]}`}
+            className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full border mb-3 ${badgeStyles[badge] ?? "bg-gray-100 text-gray-700 border-gray-200"}`}
           >
-            {job.badge}
+            {badge}
           </span>
         )}
-        <h3 className="font-semibold text-base text-foreground mb-1 line-clamp-2">
+        <h3 className="font-bold text-base text-gray-900 mb-0.5 line-clamp-2 leading-tight">
           {job.title}
         </h3>
-        <p className="text-sm text-muted-foreground mb-3 line-clamp-1">
+        <p className="text-sm text-[#d7350d] font-medium mb-3 line-clamp-1">
           {job.company}
         </p>
-        <div className="space-y-1.5 text-xs text-muted-foreground">
+        <div className="space-y-1.5 text-xs text-gray-500">
           <div className="flex items-center gap-1.5">
-            <MapPin className="w-3.5 h-3.5 shrink-0" />
+            <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
             <span>{job.city}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <DollarSign className="w-3.5 h-3.5 shrink-0" />
-            <span>{job.salary}</span>
+            <DollarSign className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+            <span>{job.salary || "A combinar"}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 shrink-0" />
+            <Clock className="w-3.5 h-3.5 text-gray-400 shrink-0" />
             <span>Prazo: {job.deadline}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Globe className="w-3.5 h-3.5 shrink-0" />
+            <Globe className="w-3.5 h-3.5 text-gray-400 shrink-0" />
             <span>Fonte: {job.source}</span>
           </div>
         </div>
-        <Button
-          size="sm"
-          className="w-full mt-4 bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors border border-primary/20"
-          asChild
+      </div>
+      <div className="px-5 pb-5">
+        <a
+          href={job.applyUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-lg bg-[#d7350d] text-white text-sm font-semibold hover:bg-[#c02e0c] transition-colors"
+          data-ocid="vagas.primary_button"
         >
-          <a
-            href={job.applyUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            data-ocid="vagas.primary_button"
-          >
-            Ver Detalhes <ExternalLink className="w-3.5 h-3.5 ml-1" />
-          </a>
-        </Button>
+          Ver Vaga <ExternalLink className="w-3.5 h-3.5" />
+        </a>
       </div>
     </div>
   );
@@ -106,7 +101,7 @@ export default function Vagas({
   const [jobs, setJobs] = useState<Job[]>(JOBS);
   const [selectedCity, setSelectedCity] = useState(initialCity);
   const [selectedType, setSelectedType] = useState("Todos");
-  const [visibleCount, setVisibleCount] = useState(6);
+  const [visibleCount, setVisibleCount] = useState(9);
 
   // CV upload matching state
   const [cvFile, setCvFile] = useState<File | null>(null);
@@ -140,7 +135,7 @@ export default function Vagas({
           setJobs(mapped);
         }
       } catch (_err) {
-        // fallback to mockData already set as default state
+        // fallback to mockData
       }
     }
     loadVagas();
@@ -149,36 +144,22 @@ export default function Vagas({
   function simulateCVMatch(fileName: string): Job[] {
     const name = fileName.toLowerCase();
     const inferredKeywords: string[] = [];
-
     if (/engenharia|engineer|eng\b/i.test(name))
       inferredKeywords.push("engenharia", "técnico", "superior");
     if (/admin|secretar|aux/i.test(name))
       inferredKeywords.push("administrativo", "organização");
     if (/ti|tech|dev|programad|software/i.test(name))
-      inferredKeywords.push(
-        "ti",
-        "programação",
-        "javascript",
-        "desenvolvimento",
-      );
+      inferredKeywords.push("ti", "programação", "javascript");
     if (/saude|saúde|enferma|medic/i.test(name))
-      inferredKeywords.push("saúde", "enfermagem", "hospital");
+      inferredKeywords.push("saúde", "enfermagem");
     if (/contab|fiscal|financ/i.test(name))
       inferredKeywords.push("contabilidade", "financeiro");
     if (/log|estoque|armaz/i.test(name))
       inferredKeywords.push("logística", "estoque");
     if (/rh|recursos|human/i.test(name))
-      inferredKeywords.push("rh", "recrutamento", "gestão de pessoas");
-
-    if (inferredKeywords.length === 0) {
-      inferredKeywords.push(
-        "comunicação",
-        "organização",
-        "administrativo",
-        "produção",
-      );
-    }
-
+      inferredKeywords.push("rh", "recrutamento");
+    if (inferredKeywords.length === 0)
+      inferredKeywords.push("comunicação", "organização", "administrativo");
     const scored = jobs.map((job) => {
       const jobSkills = job.skills || [];
       const matches = jobSkills.filter((s) =>
@@ -186,7 +167,6 @@ export default function Vagas({
       );
       return { job, score: matches.length };
     });
-
     return scored
       .filter((s) => s.score > 0)
       .sort((a, b) => b.score - a.score)
@@ -199,7 +179,7 @@ export default function Vagas({
     const typeMatch =
       selectedType === "Todos" ||
       j.type === selectedType ||
-      j.badge === selectedType;
+      (Array.isArray(j.badge) ? j.badge[0] : j.badge) === selectedType;
     const keywordMatch =
       !initialKeyword ||
       j.title.toLowerCase().includes(initialKeyword.toLowerCase()) ||
@@ -208,22 +188,27 @@ export default function Vagas({
   });
 
   const visible = filtered.slice(0, visibleCount);
-
-  // suppress unused warning
   void cvFile;
 
   return (
-    <section id="vagas" className="py-16 px-4 bg-background">
+    <section id="vagas" className="py-16 px-4 bg-[#fafafa]">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold text-foreground mb-2">
+        {/* Section header */}
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">
             Vagas da Semana
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-gray-500 mb-4">
             Oportunidades selecionadas para a região Sul Fluminense
           </p>
+          {/* Period badge */}
+          <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[#d7350d] text-[#d7350d] text-sm font-semibold">
+            <Calendar className="w-4 h-4" />
+            {getWeekPeriod()}
+          </span>
         </div>
 
+        {/* City filter pills */}
         <div className="flex flex-wrap gap-2 mb-4 justify-center">
           {CITIES.map((city) => (
             <button
@@ -232,40 +217,42 @@ export default function Vagas({
               onClick={() => setSelectedCity(city)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors border ${
                 selectedCity === city
-                  ? "bg-primary text-white border-primary"
-                  : "bg-card text-muted-foreground border-border hover:border-primary hover:text-primary"
+                  ? "bg-[#d7350d] text-white border-[#d7350d]"
+                  : "bg-white text-gray-600 border-gray-300 hover:border-[#d7350d] hover:text-[#d7350d]"
               }`}
-              data-ocid="vagas.tab"
+              data-ocid="vagas.filter.tab"
             >
               {city}
             </button>
           ))}
         </div>
 
+        {/* Type filter pills */}
         <div className="flex flex-wrap gap-2 mb-8 justify-center">
-          {JOB_TYPES.map((type) => (
+          {["Todos", ...JOB_TYPES].map((type) => (
             <button
               type="button"
               key={type}
               onClick={() => setSelectedType(type)}
               className={`px-3 py-1 rounded-full text-xs font-medium transition-colors border ${
                 selectedType === type
-                  ? "bg-foreground text-background border-foreground"
-                  : "bg-card text-muted-foreground border-border hover:border-foreground"
+                  ? "bg-gray-900 text-white border-gray-900"
+                  : "bg-white text-gray-500 border-gray-200 hover:border-gray-400"
               }`}
-              data-ocid="vagas.tab"
+              data-ocid="vagas.filter.tab"
             >
               {type}
             </button>
           ))}
         </div>
 
-        {/* CV Upload Section */}
+        {/* CV Upload */}
         <div
-          className="mb-8 rounded-2xl border-2 border-dashed border-border bg-card overflow-hidden transition-colors"
-          style={{
-            borderColor: isDragging ? "hsl(var(--primary))" : undefined,
-          }}
+          className={`rounded-xl border-2 border-dashed p-6 mb-8 text-center transition-colors ${
+            isDragging
+              ? "border-[#d7350d] bg-red-50"
+              : "border-gray-300 bg-white"
+          }`}
           onDragOver={(e) => {
             e.preventDefault();
             setIsDragging(true);
@@ -274,172 +261,119 @@ export default function Vagas({
           onDrop={(e) => {
             e.preventDefault();
             setIsDragging(false);
-            const file = e.dataTransfer.files?.[0];
+            const file = e.dataTransfer.files[0];
             if (file) {
               setCvFile(file);
               setCvFileName(file.name);
-              setCvMatches(null);
             }
           }}
-          data-ocid="vagas.dropzone"
         >
-          <div className="p-6 text-center">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-              <Upload className="w-6 h-6 text-primary" />
-            </div>
-            <p className="text-sm font-medium text-foreground mb-1">
-              Faça o upload ou arraste e solte seu currículo aqui para receber
-              recomendações de vagas com base em suas habilidades e experiência.
+          <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+          <p className="text-sm text-gray-600 mb-1 font-medium">
+            Envie seu currículo para receber vagas compatíveis com seu perfil
+          </p>
+          <p className="text-xs text-gray-400 mb-3">
+            Arraste e solte aqui ou clique para selecionar (PDF, DOC, DOCX)
+          </p>
+          {cvFileName && (
+            <p className="text-xs text-[#d7350d] mb-3 font-medium">
+              📎 {cvFileName}
             </p>
-            {cvFileName ? (
-              <p className="text-xs text-primary font-semibold mt-2 mb-3">
-                {cvFileName} ✓
-              </p>
-            ) : (
-              <p className="text-xs text-muted-foreground mt-1 mb-3">
-                PDF, DOCX ou TXT — máx. 5MB
-              </p>
-            )}
-            <div className="flex items-center justify-center gap-3 flex-wrap">
-              <label
-                htmlFor="cv-upload-vagas"
-                className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-primary/30 text-primary text-sm font-medium hover:bg-primary/5 transition-colors"
-              >
-                <Upload className="w-4 h-4" />
-                {cvFileName ? "Trocar arquivo" : "Selecionar arquivo"}
-                <input
-                  id="cv-upload-vagas"
-                  type="file"
-                  accept=".pdf,.docx,.txt"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setCvFile(file);
-                      setCvFileName(file.name);
-                      setCvMatches(null);
-                    }
-                  }}
-                  data-ocid="vagas.upload_button"
-                />
-              </label>
-              <button
-                type="button"
-                disabled={!cvFileName || cvLoading}
-                onClick={async () => {
-                  if (!cvFileName) return;
-                  setCvLoading(true);
-                  await new Promise((r) => setTimeout(r, 1600));
+          )}
+          <div className="flex gap-2 justify-center">
+            <label className="cursor-pointer px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-600 hover:border-[#d7350d] hover:text-[#d7350d] transition-colors">
+              Selecionar arquivo
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setCvFile(file);
+                    setCvFileName(file.name);
+                  }
+                }}
+              />
+            </label>
+            <Button
+              className="bg-[#d7350d] text-white hover:bg-[#c02e0c]"
+              disabled={!cvFileName || cvLoading}
+              onClick={() => {
+                if (!cvFileName) return;
+                setCvLoading(true);
+                setTimeout(() => {
                   const matches = simulateCVMatch(cvFileName);
                   setCvMatches(matches);
                   setCvLoading(false);
-                  setTimeout(
-                    () =>
-                      document
-                        .getElementById("cv-matches")
-                        ?.scrollIntoView({ behavior: "smooth" }),
-                    100,
-                  );
-                }}
-                className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                data-ocid="vagas.submit_button"
-              >
-                {cvLoading ? (
-                  <>
-                    <span className="animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4 inline-block" />{" "}
-                    Analisando...
-                  </>
-                ) : (
-                  <>
-                    <Zap className="w-4 h-4" /> Enviar Currículo
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-
-          {cvMatches !== null && (
-            <div
-              id="cv-matches"
-              className="border-t border-border p-6 bg-background"
+                }, 1200);
+              }}
+              data-ocid="vagas.upload_button"
             >
-              <h3 className="font-bold text-base mb-4 text-foreground">
-                {cvMatches.length > 0
-                  ? `${cvMatches.length} vaga${cvMatches.length !== 1 ? "s" : ""} recomendada${cvMatches.length !== 1 ? "s" : ""} para o seu perfil`
-                  : "Nenhuma vaga compatível encontrada com os filtros atuais"}
-              </h3>
-
-              {cvMatches.length >= 3 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                  {cvMatches.map((job, i) => (
-                    <div key={job.id} data-ocid={`vagas.cv_match.${i + 1}`}>
-                      <JobCard job={job} />
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {cvMatches.length < 3 && cvMatches.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                  {cvMatches.map((job, i) => (
-                    <div key={job.id} data-ocid={`vagas.cv_match.${i + 1}`}>
-                      <JobCard job={job} />
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {cvMatches.length < 3 && (
-                <div className="bg-gradient-to-r from-gray-900 to-red-600 rounded-xl p-6 text-white text-center">
-                  <div className="text-2xl mb-2">🎯</div>
-                  <h4 className="font-bold text-lg mb-2">
-                    Poucas vagas compatíveis? Vamos mudar isso!
-                  </h4>
-                  <p className="text-white/80 text-sm mb-4 max-w-md mx-auto">
-                    Nosso serviço de mentoria avalia seu currículo em detalhes e
-                    te orienta para aumentar drasticamente suas chances no
-                    mercado.
-                  </p>
-                  <a
-                    href="#mentoria"
-                    className="inline-flex items-center gap-2 bg-white text-red-600 font-semibold px-6 py-2.5 rounded-lg hover:bg-white/90 transition-colors text-sm"
-                    data-ocid="vagas.primary_button"
-                  >
-                    Quero Mentoria de Currículo{" "}
-                    <ArrowRight className="w-4 h-4" />
-                  </a>
-                </div>
-              )}
-            </div>
-          )}
+              {cvLoading ? "Analisando..." : "Enviar Currículo"}
+            </Button>
+          </div>
         </div>
 
+        {/* CV Match results */}
+        {cvMatches !== null && (
+          <div className="mb-8">
+            {cvMatches.length >= 3 ? (
+              <div>
+                <h3 className="font-bold text-gray-900 mb-4 text-center">
+                  🎯 Vagas compatíveis com seu perfil ({cvMatches.length})
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                  {cvMatches.map((job) => (
+                    <JobCard key={job.id} job={job} />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="bg-orange-50 border border-orange-200 rounded-xl p-6 text-center">
+                <p className="text-orange-800 font-semibold mb-2">
+                  Encontramos poucas vagas para o seu perfil
+                </p>
+                <p className="text-orange-600 text-sm mb-4">
+                  Nossa mentoria pode ajudá-lo a se destacar no mercado de
+                  trabalho!
+                </p>
+                <a
+                  href="#mentoria"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#d7350d] text-white rounded-lg text-sm font-semibold hover:bg-[#c02e0c] transition-colors"
+                >
+                  Conhecer Mentoria <ArrowRight className="w-4 h-4" />
+                </a>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Jobs grid */}
         {visible.length === 0 ? (
           <div
-            className="text-center py-16 text-muted-foreground"
+            className="text-center py-16 text-gray-400"
             data-ocid="vagas.empty_state"
           >
             <Briefcase className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p>Nenhuma vaga encontrada com esses filtros.</p>
+            <p>Nenhuma vaga encontrada para os filtros selecionados.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {visible.map((job, i) => (
-              <div key={job.id} data-ocid={`vagas.item.${i + 1}`}>
-                <JobCard job={job} />
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {visible.map((job) => (
+              <JobCard key={job.id} job={job} />
             ))}
           </div>
         )}
 
-        {visibleCount < filtered.length && (
+        {/* Load more */}
+        {filtered.length > visibleCount && (
           <div className="text-center mt-8">
             <Button
-              type="button"
               variant="outline"
-              className="px-8 border-primary text-primary hover:bg-primary hover:text-white"
-              onClick={() => setVisibleCount((v) => v + 3)}
-              data-ocid="vagas.secondary_button"
+              className="border-[#d7350d] text-[#d7350d] hover:bg-[#d7350d] hover:text-white px-8"
+              onClick={() => setVisibleCount((c) => c + 9)}
+              data-ocid="vagas.pagination_next"
             >
               Carregar mais vagas ({filtered.length - visibleCount} restantes)
             </Button>
