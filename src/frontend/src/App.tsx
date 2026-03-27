@@ -8,6 +8,7 @@ import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Loja from "@/components/Loja";
 import Mentoria from "@/components/Mentoria";
+import MentoriaInscricao from "@/components/MentoriaInscricao";
 import PublicarVaga from "@/components/PublicarVaga";
 import Vagas from "@/components/Vagas";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
@@ -19,6 +20,7 @@ export default function App() {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [searchCity, setSearchCity] = useState("Todas");
   const [currentHash, setCurrentHash] = useState(window.location.hash);
+  const [showMentoriaInscricao, setShowMentoriaInscricao] = useState(false);
 
   useEffect(() => {
     function onHashChange() {
@@ -51,6 +53,15 @@ export default function App() {
     );
   }
 
+  if (showMentoriaInscricao) {
+    return (
+      <>
+        <MentoriaInscricao onBack={() => setShowMentoriaInscricao(false)} />
+        <Toaster />
+      </>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -62,7 +73,7 @@ export default function App() {
         <Loja />
         <Blog />
         <Depoimentos />
-        <Mentoria />
+        <Mentoria onInscricao={() => setShowMentoriaInscricao(true)} />
         <Contato />
       </main>
       <Footer />

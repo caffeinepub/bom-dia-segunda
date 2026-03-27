@@ -10,13 +10,17 @@ const benefits = [
   "Acesso à comunidade exclusiva de alunos",
 ];
 
-export default function Mentoria() {
+interface MentoriaProps {
+  onInscricao?: () => void;
+}
+
+export default function Mentoria({ onInscricao }: MentoriaProps) {
   return (
     <section id="mentoria" className="py-16 px-4 bg-background">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-foreground mb-2">
-            Mentoria para Primeiro Emprego
+            MENTORIA PRIMEIRO EMPREGO
           </h2>
           <p className="text-muted-foreground">
             Orientação especializada para quem está entrando no mercado
@@ -89,8 +93,9 @@ export default function Mentoria() {
               <Button
                 className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-5"
                 data-ocid="mentoria.primary_button"
+                onClick={onInscricao}
               >
-                Quero me Inscrever <ArrowRight className="w-4 h-4 ml-2" />
+                QUERO ME INSCREVER <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
               <p className="text-xs text-muted-foreground text-center mt-3">
                 ✓ Garantia de 7 dias ou reembolso total

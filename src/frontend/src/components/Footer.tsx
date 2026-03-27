@@ -198,9 +198,9 @@ export default function Footer() {
                 <span style={{ color: "#d7350d" }}>D</span>
                 <span style={{ color: "#ffffff" }}>S</span>
               </span>
-              <span className="font-bold italic text-base leading-none">
-                <span style={{ color: "#ffffff" }}>BOM</span>{" "}
-                <span style={{ color: "#d7350d" }}>DIA</span>{" "}
+              <span className="font-black italic text-2xl leading-none">
+                <span style={{ color: "#ffffff" }}>BOM</span>
+                <span style={{ color: "#d7350d" }}>DIA</span>
                 <span style={{ color: "#ffffff" }}>SEGUNDA</span>
               </span>
             </div>
