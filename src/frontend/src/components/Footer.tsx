@@ -1,5 +1,3 @@
-import { Sun } from "lucide-react";
-
 const currentYear = new Date().getFullYear();
 
 const quickLinks = [
@@ -193,11 +191,18 @@ export default function Footer() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
           <div>
+            {/* Logo BDS + BOM DIA SEGUNDA */}
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                <Sun className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-bold text-white">Bom Dia Segunda</span>
+              <span className="font-black text-2xl leading-none tracking-tight">
+                <span style={{ color: "#ffffff" }}>B</span>
+                <span style={{ color: "#d7350d" }}>D</span>
+                <span style={{ color: "#ffffff" }}>S</span>
+              </span>
+              <span className="font-bold italic text-base leading-none">
+                <span style={{ color: "#ffffff" }}>BOM</span>{" "}
+                <span style={{ color: "#d7350d" }}>DIA</span>{" "}
+                <span style={{ color: "#ffffff" }}>SEGUNDA</span>
+              </span>
             </div>
             <p className="text-xs leading-relaxed mb-5">
               A principal plataforma de vagas de emprego do Sul Fluminense.
