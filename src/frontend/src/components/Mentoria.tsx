@@ -1,5 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Check, Star } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Star,
+} from "lucide-react";
+import { useState } from "react";
 
 const benefits = [
   "Análise personalizada do seu currículo e perfil no LinkedIn",
@@ -10,11 +17,70 @@ const benefits = [
   "Acesso à comunidade exclusiva de alunos",
 ];
 
+const testimonials = [
+  {
+    name: "Fernanda Lima",
+    city: "Volta Redonda",
+    initials: "FL",
+    color: "bg-blue-400",
+    quote:
+      "A mentoria mudou completamente minha perspectiva. Em 30 dias consegui meu primeiro emprego em Volta Redonda!",
+  },
+  {
+    name: "Carlos Mendes",
+    city: "Resende",
+    initials: "CM",
+    color: "bg-green-500",
+    quote:
+      "O suporte foi incrível. As simulações de entrevista me deram muita confiança para enfrentar os processos seletivos.",
+  },
+  {
+    name: "Ana Paula Santos",
+    city: "Barra Mansa",
+    initials: "AS",
+    color: "bg-purple-500",
+    quote:
+      "Meu currículo estava fraco e o LinkedIn nem atualizado. Depois da mentoria, recebi 3 propostas em 2 semanas!",
+  },
+  {
+    name: "Rafael Oliveira",
+    city: "Três Rios",
+    initials: "RO",
+    color: "bg-orange-500",
+    quote:
+      "Indicaria para qualquer pessoa que está tentando entrar no mercado. O mentor conhece muito bem a realidade regional.",
+  },
+  {
+    name: "Juliana Costa",
+    city: "Vassouras",
+    initials: "JC",
+    color: "bg-pink-500",
+    quote:
+      "Consegui meu primeiro estágio logo após a mentoria. As dicas de LinkedIn fizeram toda a diferença no processo.",
+  },
+  {
+    name: "Lucas Ferreira",
+    city: "Angra dos Reis",
+    initials: "LF",
+    color: "bg-teal-500",
+    quote:
+      "Excelente custo-benefício. O material de apoio e o grupo de WhatsApp foram fundamentais para minha evolução.",
+  },
+];
+
 interface MentoriaProps {
   onInscricao?: () => void;
 }
 
 export default function Mentoria({ onInscricao }: MentoriaProps) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const prev = () =>
+    setCurrentIndex((i) => (i - 1 + testimonials.length) % testimonials.length);
+  const next = () => setCurrentIndex((i) => (i + 1) % testimonials.length);
+
+  const current = testimonials[currentIndex];
+
   return (
     <section id="mentoria" className="py-16 px-4 bg-background">
       <div className="max-w-6xl mx-auto">
@@ -28,7 +94,7 @@ export default function Mentoria({ onInscricao }: MentoriaProps) {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-          {/* Benefits */}
+          {/* Benefits + Testimonial Carousel */}
           <div>
             <h3 className="text-xl font-bold mb-6">O que você vai receber:</h3>
             <ul className="space-y-4">
@@ -44,22 +110,82 @@ export default function Mentoria({ onInscricao }: MentoriaProps) {
               ))}
             </ul>
 
-            <div className="mt-8 bg-amber-50 border border-amber-200 rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-2">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <Star
-                    key={s}
-                    className="w-4 h-4 text-yellow-400 fill-yellow-400"
-                  />
-                ))}
-                <span className="text-sm font-semibold">4.9/5 estrelas</span>
+            {/* Testimonial Carousel */}
+            <div className="mt-8">
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 relative">
+                {/* Photo + Stars row */}
+                <div className="flex items-center gap-3 mb-3">
+                  <div
+                    className={`w-12 h-12 rounded-full ${current.color} flex items-center justify-center shrink-0 text-white font-bold text-sm`}
+                  >
+                    {current.initials}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm text-foreground">
+                      {current.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {current.city}
+                    </p>
+                    <div className="flex gap-0.5 mt-0.5">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star
+                          key={s}
+                          className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-sm text-muted-foreground italic leading-relaxed">
+                  &ldquo;{current.quote}&rdquo;
+                </p>
+
+                {/* Navigation buttons */}
+                <div className="flex items-center justify-between mt-4">
+                  <button
+                    type="button"
+                    onClick={prev}
+                    className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors"
+                    aria-label="Anterior"
+                    data-ocid="mentoria.testimonial.pagination_prev"
+                  >
+                    <ChevronLeft className="w-4 h-4 text-gray-600" />
+                  </button>
+
+                  {/* Dots */}
+                  <div className="flex gap-1.5">
+                    {testimonials.map((t, position) => (
+                      <button
+                        key={t.name}
+                        type="button"
+                        onClick={() => setCurrentIndex(position)}
+                        className={`w-2 h-2 rounded-full transition-colors ${
+                          position === currentIndex
+                            ? "bg-primary"
+                            : "bg-gray-300"
+                        }`}
+                        aria-label={`Depoimento de ${t.name}`}
+                      />
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={next}
+                    className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors"
+                    aria-label="Próximo"
+                    data-ocid="mentoria.testimonial.pagination_next"
+                  >
+                    <ChevronRight className="w-4 h-4 text-gray-600" />
+                  </button>
+                </div>
               </div>
-              <p className="text-sm text-muted-foreground italic">
-                "A mentoria mudou completamente minha perspectiva. Em 30 dias
-                consegui meu primeiro emprego em Volta Redonda!"
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                — Fernanda Lima, Volta Redonda
+
+              <p className="text-xs text-muted-foreground text-center mt-2">
+                {currentIndex + 1} de {testimonials.length} depoimentos • Média
+                4.9/5 ⭐
               </p>
             </div>
           </div>

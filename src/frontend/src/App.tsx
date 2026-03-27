@@ -70,10 +70,10 @@ export default function App() {
         <Vagas initialKeyword={searchKeyword} initialCity={searchCity} />
         <Estatisticas />
         <Avaliador />
+        <Mentoria onInscricao={() => setShowMentoriaInscricao(true)} />
         <Loja />
         <Blog />
         <Depoimentos />
-        <Mentoria onInscricao={() => setShowMentoriaInscricao(true)} />
         <Contato />
       </main>
       <Footer />
