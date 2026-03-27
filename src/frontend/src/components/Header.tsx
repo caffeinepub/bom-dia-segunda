@@ -57,13 +57,6 @@ export default function Header() {
           >
             Publicar Vaga
           </Button>
-          <a
-            href="#contato"
-            className="text-sm text-gray-700 hover:text-gray-900 ml-1"
-            data-ocid="header.link"
-          >
-            Login
-          </a>
         </div>
 
         <button

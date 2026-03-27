@@ -21,10 +21,6 @@ export default function Hero({ onSearch }: HeroProps) {
   return (
     <section id="hero" className="hero-gradient py-24 px-4">
       <div className="max-w-3xl mx-auto text-center">
-        <div className="inline-flex items-center gap-2 bg-white/10 text-white/90 text-xs font-medium px-3 py-1.5 rounded-full mb-6">
-          <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          Semana de 23 a 29 de Março — Novas vagas disponíveis
-        </div>
         <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 leading-tight">
           Sua Próxima Oportunidade está no{" "}
           <span className="text-orange-300">Sul Fluminense</span>

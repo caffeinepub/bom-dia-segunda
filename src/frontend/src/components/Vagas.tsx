@@ -356,9 +356,10 @@ export default function Vagas({
           <p className="text-sm text-gray-600 mb-1 font-medium">
             Envie seu currículo para receber vagas compatíveis com seu perfil
           </p>
-          <p className="text-xs text-gray-400 mb-3">
+          <p className="text-xs text-gray-400 mb-4">
             Arraste e solte aqui ou clique para selecionar (PDF, DOC, DOCX)
           </p>
+
           {cvFileName && (
             <p className="text-xs text-[#d7350d] mb-3 font-medium">
               📎 {cvFileName}

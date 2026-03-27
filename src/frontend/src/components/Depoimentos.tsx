@@ -49,6 +49,8 @@ export default function Depoimentos() {
   const [fprofession, setFprofession] = useState("");
   const [fcity, setFcity] = useState("");
   const [ftext, setFtext] = useState("");
+  const [fstars, setFstars] = useState(0);
+  const [fstarsHover, setFstarsHover] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -93,6 +95,10 @@ export default function Depoimentos() {
       toast.error("Preencha todos os campos.");
       return;
     }
+    if (fstars === 0) {
+      toast.error("Selecione uma avaliação de 1 a 5 estrelas.");
+      return;
+    }
     setSubmitting(true);
     try {
       if (actor) {
@@ -114,6 +120,7 @@ export default function Depoimentos() {
       setFprofession("");
       setFcity("");
       setFtext("");
+      setFstars(0);
     } catch {
       toast.error("Erro ao enviar depoimento. Tente novamente.");
     } finally {
@@ -269,6 +276,39 @@ export default function Depoimentos() {
                   />
                 </div>
               </div>
+
+              {/* Star Rating */}
+              <div>
+                <Label className="text-white/70 text-sm">Avaliação *</Label>
+                <div
+                  className="flex gap-1 mt-1"
+                  onMouseLeave={() => setFstarsHover(0)}
+                  data-ocid="depoimentos.toggle"
+                >
+                  {[1, 2, 3, 4, 5].map((n) => {
+                    const active = (fstarsHover || fstars) >= n;
+                    return (
+                      <button
+                        key={n}
+                        type="button"
+                        aria-label={`${n} estrela${n > 1 ? "s" : ""}`}
+                        onMouseEnter={() => setFstarsHover(n)}
+                        onClick={() => setFstars(n)}
+                        className="cursor-pointer focus:outline-none transition-transform hover:scale-110"
+                      >
+                        <Star
+                          className={`w-8 h-8 transition-colors ${
+                            active
+                              ? "text-yellow-400 fill-yellow-400"
+                              : "text-white/30"
+                          }`}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div>
                 <Label className="text-white/70 text-sm">Depoimento *</Label>
                 <Textarea

@@ -195,6 +195,7 @@ export default function Avaliador() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Lead capture fields
+  const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [escolaridade, setEscolaridade] = useState("");
@@ -202,6 +203,7 @@ export default function Avaliador() {
 
   const canSubmit =
     !!fileName &&
+    nome.trim() !== "" &&
     email.trim() !== "" &&
     whatsapp.trim() !== "" &&
     escolaridade !== "" &&
@@ -279,7 +281,7 @@ export default function Avaliador() {
             <span style={{ color: "#1a1a1a" }}>B</span>
             <span style={{ color: "#d7350d" }}>D</span>
             <span style={{ color: "#1a1a1a" }}>S</span>
-            <span style={{ color: "#1a1a1a" }}> AVALIADOR DE CURRÍCULO</span>
+            <span style={{ color: "#1a1a1a" }}>AVALIADOR DE CURRÍCULO</span>
           </h2>
           <p
             className="font-bold text-foreground mb-1"
@@ -340,6 +342,23 @@ export default function Avaliador() {
 
             {/* Lead capture fields */}
             <div className="space-y-4 mb-5">
+              <div>
+                <Label
+                  htmlFor="lead-nome"
+                  className="text-sm font-medium mb-1 block"
+                >
+                  Nome completo <span className="text-primary">*</span>
+                </Label>
+                <Input
+                  id="lead-nome"
+                  type="text"
+                  placeholder="Seu nome completo"
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  data-ocid="avaliador.input"
+                />
+              </div>
+
               <div>
                 <Label
                   htmlFor="lead-email"
