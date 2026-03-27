@@ -11,7 +11,6 @@ import { useActor } from "@/hooks/useActor";
 import {
   ArrowRight,
   Briefcase,
-  Calendar,
   Clock,
   DollarSign,
   ExternalLink,
@@ -29,19 +28,6 @@ const badgeStyles: Record<string, string> = {
   Estágio: "bg-yellow-100 text-yellow-700 border-yellow-200",
   Remoto: "bg-gray-100 text-gray-700 border-gray-200",
 };
-
-function getWeekPeriod() {
-  const today = new Date();
-  const day = today.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  const monday = new Date(today);
-  monday.setDate(today.getDate() + diff);
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  const fmt = (d: Date) =>
-    d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
-  return `Semana de ${fmt(monday)} a ${fmt(sunday)}`;
-}
 
 function JobCard({ job }: { job: Job }) {
   const badge = Array.isArray(job.badge) ? job.badge[0] : job.badge;
@@ -298,10 +284,12 @@ export default function Vagas({
       <div className="max-w-6xl mx-auto">
         {/* Section header */}
         <div className="text-center mb-8">
-          <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[#d7350d] text-[#d7350d] text-sm font-semibold">
-            <Calendar className="w-4 h-4" />
-            {getWeekPeriod()}
-          </span>
+          <h2 className="text-3xl font-bold text-[#1a1a1a] mb-2">
+            Vagas da Semana
+          </h2>
+          <p className="text-gray-600">
+            Oportunidades selecionadas para a região Sul Fluminense
+          </p>
         </div>
 
         {/* City filter pills */}
