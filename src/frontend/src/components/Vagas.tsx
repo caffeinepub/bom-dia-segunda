@@ -1,4 +1,11 @@
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { CITIES, JOBS, JOB_TYPES, type Job } from "@/data/mockData";
 import { useActor } from "@/hooks/useActor";
 import {
@@ -25,7 +32,7 @@ const badgeStyles: Record<string, string> = {
 
 function getWeekPeriod() {
   const today = new Date();
-  const day = today.getDay(); // 0=Sun, 1=Mon...
+  const day = today.getDay();
   const diff = day === 0 ? -6 : 1 - day;
   const monday = new Date(today);
   monday.setDate(today.getDate() + diff);
@@ -38,6 +45,12 @@ function getWeekPeriod() {
 
 function JobCard({ job }: { job: Job }) {
   const badge = Array.isArray(job.badge) ? job.badge[0] : job.badge;
+  const badges = Array.isArray(job.badge)
+    ? job.badge
+    : job.badge
+      ? [job.badge]
+      : [];
+
   return (
     <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 flex flex-col">
       <div className="p-5 flex-1">
@@ -73,15 +86,106 @@ function JobCard({ job }: { job: Job }) {
           </div>
         </div>
       </div>
-      <div className="px-5 pb-5">
+
+      {/* Action buttons */}
+      <div className="px-5 pb-5 flex gap-2">
+        {/* Detalhes button + Dialog */}
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button
+              variant="outline"
+              className="flex-1 border-gray-300 text-gray-700 hover:border-[#d7350d] hover:text-[#d7350d] text-sm"
+              data-ocid="vagas.secondary_button"
+            >
+              Detalhes
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-bold text-gray-900 leading-tight">
+                {job.title}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="mt-1">
+              <p className="text-[#d7350d] font-semibold text-sm mb-3">
+                {job.company}
+              </p>
+
+              {/* Badges */}
+              {badges.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-4">
+                  {badges.map((b) => (
+                    <span
+                      key={b}
+                      className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${badgeStyles[b] ?? "bg-gray-100 text-gray-700 border-gray-200"}`}
+                    >
+                      {b}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Info rows */}
+              <div className="space-y-3 text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-[#d7350d] shrink-0" />
+                  <span>
+                    <span className="font-medium">Localidade:</span> {job.city}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-[#d7350d] shrink-0" />
+                  <span>
+                    <span className="font-medium">Salário:</span>{" "}
+                    {job.salary || "A combinar"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-[#d7350d] shrink-0" />
+                  <span>
+                    <span className="font-medium">Prazo:</span> {job.deadline}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-[#d7350d] shrink-0" />
+                  <span>
+                    <span className="font-medium">Fonte:</span> {job.source}
+                  </span>
+                </div>
+                {(job.type || job.area) && (
+                  <div className="flex items-center gap-2">
+                    <Briefcase className="w-4 h-4 text-[#d7350d] shrink-0" />
+                    <span>
+                      <span className="font-medium">Tipo:</span>{" "}
+                      {[job.type, job.area].filter(Boolean).join(" · ")}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Apply button inside dialog */}
+              <a
+                href={job.applyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-[#d7350d] text-white text-sm font-semibold hover:bg-[#c02e0c] transition-colors"
+                data-ocid="vagas.primary_button"
+              >
+                Candidatar-se <ExternalLink className="w-4 h-4" />
+              </a>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Candidatar-se button */}
         <a
           href={job.applyUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-lg bg-[#d7350d] text-white text-sm font-semibold hover:bg-[#c02e0c] transition-colors"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md bg-[#d7350d] text-white text-sm font-semibold hover:bg-[#c02e0c] transition-colors"
           data-ocid="vagas.primary_button"
         >
-          Ver Vaga <ExternalLink className="w-3.5 h-3.5" />
+          Candidatar-se <ExternalLink className="w-3.5 h-3.5" />
         </a>
       </div>
     </div>
@@ -103,7 +207,6 @@ export default function Vagas({
   const [selectedType, setSelectedType] = useState("Todos");
   const [visibleCount, setVisibleCount] = useState(9);
 
-  // CV upload matching state
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [cvFileName, setCvFileName] = useState("");
   const [cvLoading, setCvLoading] = useState(false);
@@ -201,7 +304,6 @@ export default function Vagas({
           <p className="text-gray-500 mb-4">
             Oportunidades selecionadas para a região Sul Fluminense
           </p>
-          {/* Period badge */}
           <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[#d7350d] text-[#d7350d] text-sm font-semibold">
             <Calendar className="w-4 h-4" />
             {getWeekPeriod()}

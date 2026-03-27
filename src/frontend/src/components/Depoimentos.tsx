@@ -132,7 +132,7 @@ export default function Depoimentos() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-10">
           <h2 className="text-3xl font-bold text-white mb-2">
-            Histórias de Sucesso
+            HISTÓRIAS DE SUCESSO
           </h2>
           <p className="text-white/60">
             Pessoas que encontraram sua oportunidade pelo Bom Dia Segunda

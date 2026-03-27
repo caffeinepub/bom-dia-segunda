@@ -55,7 +55,7 @@ export default function Mentoria() {
                 consegui meu primeiro emprego em Volta Redonda!"
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                — Fernanda Lima, Estagiária Hyundai CAOA
+                — Fernanda Lima, Volta Redonda
               </p>
             </div>
           </div>

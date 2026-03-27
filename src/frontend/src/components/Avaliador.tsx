@@ -11,6 +11,8 @@ import {
   FileText,
   Lightbulb,
   Linkedin,
+  MapPin,
+  ShieldCheck,
   Star,
   Target,
   Upload,
@@ -192,6 +194,19 @@ export default function Avaliador() {
   const [requestingReport, setRequestingReport] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Lead capture fields
+  const [email, setEmail] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [escolaridade, setEscolaridade] = useState("");
+  const [cidade, setCidade] = useState("");
+
+  const canSubmit =
+    !!fileName &&
+    email.trim() !== "" &&
+    whatsapp.trim() !== "" &&
+    escolaridade !== "" &&
+    cidade.trim() !== "";
+
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -199,7 +214,7 @@ export default function Avaliador() {
   };
 
   const handleEvaluate = async () => {
-    if (!fileName) return;
+    if (!canSubmit) return;
     setLoading(true);
     await new Promise((r) => setTimeout(r, 1800));
     const evaluated = simulateEvaluation(`${fileName} ${jobDesc}`);
@@ -282,6 +297,7 @@ export default function Avaliador() {
           <div className="bg-card rounded-2xl border border-border shadow-card p-6">
             <h3 className="font-semibold text-lg mb-5">Envie seu Currículo</h3>
 
+            {/* File upload dropzone */}
             <label
               htmlFor="file-upload"
               className="border-2 border-dashed border-border rounded-xl p-6 text-center mb-4 cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors block"
@@ -312,12 +328,112 @@ export default function Avaliador() {
               />
             </label>
 
+            {/* LGPD disclaimer */}
+            <div className="flex gap-3 items-start bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 mb-5">
+              <ShieldCheck className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+              <p className="text-xs text-blue-700 leading-relaxed">
+                Ao enviar seu currículo, você autoriza análise automatizada para
+                fins de feedback. Não armazenamos cópias do arquivo após
+                processamento.
+              </p>
+            </div>
+
+            {/* Lead capture fields */}
+            <div className="space-y-4 mb-5">
+              <div>
+                <Label
+                  htmlFor="lead-email"
+                  className="text-sm font-medium mb-1 block"
+                >
+                  E-mail <span className="text-primary">*</span>
+                  <span className="text-muted-foreground font-normal ml-1 text-xs">
+                    (para newsletter)
+                  </span>
+                </Label>
+                <Input
+                  id="lead-email"
+                  type="email"
+                  placeholder="Seu e-mail"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  data-ocid="avaliador.input"
+                />
+              </div>
+
+              <div>
+                <Label
+                  htmlFor="lead-whatsapp"
+                  className="text-sm font-medium mb-1 block"
+                >
+                  WhatsApp <span className="text-primary">*</span>
+                  <span className="text-muted-foreground font-normal ml-1 text-xs">
+                    (para contato)
+                  </span>
+                </Label>
+                <Input
+                  id="lead-whatsapp"
+                  type="tel"
+                  placeholder="(24) 99999-9999"
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
+                  data-ocid="avaliador.input"
+                />
+              </div>
+
+              <div>
+                <Label
+                  htmlFor="lead-escolaridade"
+                  className="text-sm font-medium mb-1 block"
+                >
+                  Nível de Escolaridade <span className="text-primary">*</span>
+                </Label>
+                <select
+                  id="lead-escolaridade"
+                  value={escolaridade}
+                  onChange={(e) => setEscolaridade(e.target.value)}
+                  className="border border-input bg-background px-3 py-2 text-sm rounded-md w-full focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  data-ocid="avaliador.select"
+                >
+                  <option value="" disabled>
+                    Selecione seu nível de escolaridade
+                  </option>
+                  <option value="fundamental">Ensino Fundamental</option>
+                  <option value="medio">Ensino Médio</option>
+                  <option value="tecnico">Ensino Técnico</option>
+                  <option value="graduacao">Graduação</option>
+                  <option value="pos-graduacao">Pós-graduação</option>
+                </select>
+              </div>
+
+              <div>
+                <Label
+                  htmlFor="lead-cidade"
+                  className="text-sm font-medium mb-1 flex items-center gap-1"
+                >
+                  <MapPin className="w-3.5 h-3.5" />
+                  Cidade <span className="text-primary">*</span>
+                </Label>
+                <Input
+                  id="lead-cidade"
+                  type="text"
+                  placeholder="Sua cidade / UF"
+                  value={cidade}
+                  onChange={(e) => setCidade(e.target.value)}
+                  data-ocid="avaliador.input"
+                />
+              </div>
+            </div>
+
+            {/* Optional fields */}
             <div className="mb-4">
               <Label
                 htmlFor="job-desc"
                 className="text-sm font-medium mb-1 block"
               >
-                Descrição da Vaga (opcional)
+                Descrição da Vaga
+                <span className="text-muted-foreground font-normal ml-1 text-xs">
+                  (opcional)
+                </span>
               </Label>
               <Textarea
                 id="job-desc"
@@ -334,7 +450,10 @@ export default function Avaliador() {
                 htmlFor="linkedin"
                 className="text-sm font-medium mb-1 flex items-center gap-1"
               >
-                <Linkedin className="w-4 h-4" /> URL do LinkedIn (opcional)
+                <Linkedin className="w-4 h-4" /> URL do LinkedIn
+                <span className="text-muted-foreground font-normal ml-1 text-xs">
+                  (opcional)
+                </span>
               </Label>
               <Input
                 id="linkedin"
@@ -349,7 +468,7 @@ export default function Avaliador() {
               type="button"
               className="w-full bg-primary hover:bg-primary/90 text-white"
               onClick={handleEvaluate}
-              disabled={loading || !fileName}
+              disabled={loading || !canSubmit}
               data-ocid="avaliador.submit_button"
             >
               {loading ? (
@@ -364,6 +483,12 @@ export default function Avaliador() {
                 </>
               )}
             </Button>
+
+            {!canSubmit && fileName && (
+              <p className="text-xs text-muted-foreground text-center mt-2">
+                Preencha todos os campos obrigatórios (*) para continuar
+              </p>
+            )}
           </div>
 
           <div className="space-y-4">

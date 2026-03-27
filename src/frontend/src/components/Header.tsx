@@ -5,7 +5,7 @@ import { useState } from "react";
 const navLinks = [
   { label: "Encontrar Vagas", href: "#vagas" },
   { label: "Estatísticas", href: "#estatisticas" },
-  { label: "Blog", href: "#blog" },
+  { label: "Mercado & Trabalho", href: "#blog" },
   { label: "Mentoria", href: "#mentoria" },
   { label: "Sobre", href: "#contato" },
 ];

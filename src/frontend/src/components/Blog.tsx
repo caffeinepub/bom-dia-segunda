@@ -63,7 +63,7 @@ export default function Blog() {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-10">
           <h2 className="text-3xl font-bold text-foreground mb-2">
-            Blog &amp; Dicas
+            MERCADO &amp; TRABALHO
           </h2>
           <p className="text-muted-foreground">
             Conteúdo para ajudar você na sua jornada profissional
