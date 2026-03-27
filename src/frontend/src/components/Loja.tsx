@@ -80,10 +80,7 @@ export default function Loja() {
     <section id="loja" className="py-16 px-4" style={{ background: "#f8f4f2" }}>
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-10">
-          <h2
-            className="text-3xl font-bold mb-2"
-            style={{ fontStyle: "italic" }}
-          >
+          <h2 className="text-3xl font-bold mb-2">
             <span style={{ color: "#1a1a1a" }}>BOM</span>
             <span style={{ color: "#d7350d" }}>DIA</span>
             <span style={{ color: "#1a1a1a" }}>SEGUNDA</span>

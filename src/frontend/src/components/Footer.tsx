@@ -191,13 +191,8 @@ export default function Footer() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
           <div>
-            {/* Logo BDS + BOM DIA SEGUNDA */}
-            <div className="flex items-center gap-2 mb-3">
-              <span className="font-black text-2xl leading-none tracking-tight">
-                <span style={{ color: "#ffffff" }}>B</span>
-                <span style={{ color: "#d7350d" }}>D</span>
-                <span style={{ color: "#ffffff" }}>S</span>
-              </span>
+            {/* Logo BOMDIASEGUNDA */}
+            <div className="mb-3">
               <span className="font-black italic text-2xl leading-none">
                 <span style={{ color: "#ffffff" }}>BOM</span>
                 <span style={{ color: "#d7350d" }}>DIA</span>
