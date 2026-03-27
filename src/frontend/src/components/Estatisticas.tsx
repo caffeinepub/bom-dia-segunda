@@ -98,7 +98,7 @@ export default function Estatisticas() {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-foreground mb-2">
-            O Mercado em Números
+            O MERCADO EM NÚMEROS
           </h2>
           <p className="text-muted-foreground">
             Dados atualizados para a semana de{" "}
