@@ -101,6 +101,8 @@ export default function AdminPanel() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("vagas");
+  const [loginUser, setLoginUser] = useState("");
+  const [loginPass, setLoginPass] = useState("");
 
   async function handleLogin() {
     if (!actor) {
@@ -116,6 +118,14 @@ export default function AdminPanel() {
       toast.error("Erro ao verificar permissões.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  function handlePasswordLogin() {
+    if (loginUser === "admin" && loginPass === "123456") {
+      setIsAdmin(true);
+    } else {
+      toast.error("Credenciais incorretas.");
     }
   }
 
@@ -137,13 +147,60 @@ export default function AdminPanel() {
           <p className="text-sm text-gray-500 mb-6">
             Painel de administração exclusivo
           </p>
+          <div className="text-left space-y-3 mb-4">
+            <div>
+              <Label
+                htmlFor="admin-login"
+                className="text-xs text-gray-600 mb-1 block"
+              >
+                Login
+              </Label>
+              <Input
+                id="admin-login"
+                type="text"
+                value={loginUser}
+                onChange={(e) => setLoginUser(e.target.value)}
+                placeholder="Usuário"
+                data-ocid="admin.input"
+              />
+            </div>
+            <div>
+              <Label
+                htmlFor="admin-pass"
+                className="text-xs text-gray-600 mb-1 block"
+              >
+                Senha
+              </Label>
+              <Input
+                id="admin-pass"
+                type="password"
+                value={loginPass}
+                onChange={(e) => setLoginPass(e.target.value)}
+                placeholder="Senha"
+                onKeyDown={(e) => e.key === "Enter" && handlePasswordLogin()}
+                data-ocid="admin.input"
+              />
+            </div>
+          </div>
+          <Button
+            className="w-full bg-[#1a1a1a] hover:bg-[#333] text-white mb-4"
+            onClick={handlePasswordLogin}
+            data-ocid="admin.submit_button"
+          >
+            Entrar
+          </Button>
+          <div className="flex items-center gap-2 mb-4">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="text-xs text-gray-400">ou</span>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
           <Button
             className="w-full bg-[#d7350d] hover:bg-[#c02e0c] text-white"
             onClick={handleLogin}
             disabled={loading || isFetching}
             data-ocid="admin.primary_button"
           >
-            {loading ? "Verificando..." : "Entrar como Administrador"}
+            {loading ? "Verificando..." : "Entrar como Administrador (ICP)"}
           </Button>
           <button
             type="button"
