@@ -2,43 +2,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Bell,
-  Facebook,
-  Instagram,
-  Linkedin,
-  Send,
-  Youtube,
-} from "lucide-react";
+import { Bell, Send } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-
-const socialLinks = [
-  {
-    icon: Instagram,
-    label: "Instagram",
-    color: "hover:bg-pink-500",
-    href: "https://instagram.com",
-  },
-  {
-    icon: Facebook,
-    label: "Facebook",
-    color: "hover:bg-blue-600",
-    href: "https://facebook.com",
-  },
-  {
-    icon: Youtube,
-    label: "YouTube",
-    color: "hover:bg-red-600",
-    href: "https://youtube.com",
-  },
-  {
-    icon: Linkedin,
-    label: "LinkedIn",
-    color: "hover:bg-blue-700",
-    href: "https://linkedin.com",
-  },
-];
 
 export default function Contato() {
   const [contactForm, setContactForm] = useState({
@@ -183,31 +149,6 @@ export default function Contato() {
               </form>
               <p className="text-xs text-muted-foreground mt-2">
                 ✓ Sem spam. Cancele a qualquer momento.
-              </p>
-            </div>
-
-            <div className="bg-card rounded-2xl border border-border shadow-card p-6">
-              <h3 className="font-semibold mb-4">Siga nas Redes Sociais</h3>
-              <div className="flex gap-3">
-                {socialLinks.map(({ icon: Icon, label, color, href }) => (
-                  <a
-                    key={label}
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`w-10 h-10 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-white transition-colors ${color}`}
-                    aria-label={label}
-                    data-ocid="contato.link"
-                  >
-                    <Icon className="w-4 h-4" />
-                  </a>
-                ))}
-              </div>
-              <p className="text-sm text-muted-foreground mt-3">
-                📍 Atendemos toda a região Sul e Centro-Sul Fluminense
-              </p>
-              <p className="text-sm text-muted-foreground mt-1">
-                📧 contato@bomdiasegunda.com.br
               </p>
             </div>
           </div>
