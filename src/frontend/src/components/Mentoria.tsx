@@ -82,7 +82,10 @@ export default function Mentoria({ onInscricao }: MentoriaProps) {
   const current = testimonials[currentIndex];
 
   return (
-    <section id="mentoria" className="py-16 px-4 bg-background">
+    <section
+      id="mentoria"
+      className="py-16 px-4 bg-gradient-to-br from-red-50 via-white to-rose-50 border-t-4 border-red-600 border-b border-red-100"
+    >
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-foreground mb-2">

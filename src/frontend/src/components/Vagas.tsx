@@ -11,6 +11,7 @@ import { useActor } from "@/hooks/useActor";
 import {
   ArrowRight,
   Briefcase,
+  CheckCircle,
   Clock,
   DollarSign,
   ExternalLink,
@@ -86,13 +87,15 @@ function JobCard({ job }: { job: Job }) {
               Detalhes
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle className="text-lg font-bold text-gray-900 leading-tight">
+              <DialogTitle className="text-lg font-bold text-gray-900 leading-tight pr-6">
                 {job.title}
               </DialogTitle>
             </DialogHeader>
-            <div className="mt-1">
+
+            {/* Scrollable content area */}
+            <div className="overflow-y-auto max-h-[70vh] pr-1">
               <p className="text-[#d7350d] font-semibold text-sm mb-3">
                 {job.company}
               </p>
@@ -112,7 +115,7 @@ function JobCard({ job }: { job: Job }) {
               )}
 
               {/* Info rows */}
-              <div className="space-y-3 text-sm text-gray-600">
+              <div className="space-y-2.5 text-sm text-gray-600 mb-5">
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-[#d7350d] shrink-0" />
                   <span>
@@ -126,6 +129,15 @@ function JobCard({ job }: { job: Job }) {
                     {job.salary || "A combinar"}
                   </span>
                 </div>
+                {job.workHours && (
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-[#d7350d] shrink-0" />
+                    <span>
+                      <span className="font-medium">Carga Horária:</span>{" "}
+                      {job.workHours}
+                    </span>
+                  </div>
+                )}
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-[#d7350d] shrink-0" />
                   <span>
@@ -143,18 +155,72 @@ function JobCard({ job }: { job: Job }) {
                     <Briefcase className="w-4 h-4 text-[#d7350d] shrink-0" />
                     <span>
                       <span className="font-medium">Tipo:</span>{" "}
-                      {[job.type, job.area].filter(Boolean).join(" · ")}
+                      {[job.contractType || job.type, job.area]
+                        .filter(Boolean)
+                        .join(" · ")}
                     </span>
                   </div>
                 )}
               </div>
+
+              {/* Descrição do Cargo */}
+              {job.description && (
+                <div className="mb-5">
+                  <h4 className="font-bold text-gray-800 text-sm mb-2 uppercase tracking-wide">
+                    Descrição do Cargo
+                  </h4>
+                  <div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-700 leading-relaxed">
+                    {job.description}
+                  </div>
+                </div>
+              )}
+
+              {/* Requisitos */}
+              {job.requirements && job.requirements.length > 0 && (
+                <div className="mb-5">
+                  <h4 className="font-bold text-gray-800 text-sm mb-2 uppercase tracking-wide">
+                    Requisitos
+                  </h4>
+                  <ul className="space-y-1.5">
+                    {job.requirements.map((req) => (
+                      <li
+                        key={req}
+                        className="flex items-start gap-2 text-sm text-gray-700"
+                      >
+                        <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-[#d7350d] shrink-0 mt-2" />
+                        {req}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Benefícios */}
+              {job.benefits && job.benefits.length > 0 && (
+                <div className="mb-5">
+                  <h4 className="font-bold text-gray-800 text-sm mb-2 uppercase tracking-wide">
+                    Benefícios
+                  </h4>
+                  <ul className="space-y-1.5">
+                    {job.benefits.map((ben) => (
+                      <li
+                        key={ben}
+                        className="flex items-center gap-2 text-sm text-gray-700"
+                      >
+                        <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                        {ben}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {/* Apply button inside dialog */}
               <a
                 href={job.applyUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-5 flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-[#d7350d] text-white text-sm font-semibold hover:bg-[#c02e0c] transition-colors"
+                className="mt-2 flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-[#d7350d] text-white text-sm font-semibold hover:bg-[#c02e0c] transition-colors"
                 data-ocid="vagas.primary_button"
               >
                 Candidatar-se <ExternalLink className="w-4 h-4" />

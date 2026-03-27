@@ -30,6 +30,11 @@ export interface Job {
   area: string;
   skills?: string[];
   education?: string;
+  description?: string;
+  requirements?: string[];
+  benefits?: string[];
+  workHours?: string;
+  contractType?: string;
 }
 
 export const JOBS: Job[] = [
@@ -54,6 +59,26 @@ export const JOBS: Job[] = [
       "gestão de pessoas",
     ],
     education: "Superior",
+    description:
+      "O Analista de RH será responsável por conduzir processos seletivos end-to-end, desde a triagem de currículos até a integração de novos colaboradores. Atuará também no desenvolvimento de políticas de gestão de pessoas, treinamento e retenção de talentos. O profissional apoiará a liderança na implementação de programas de engajamento e clima organizacional.",
+    requirements: [
+      "Ensino Superior completo em Psicologia, Administração ou áreas correlatas",
+      "Experiência mínima de 2 anos em Recursos Humanos",
+      "Domínio do Pacote Office (Excel avançado)",
+      "Conhecimento em sistemas de RH (TOTVS, SAP ou similares)",
+      "Habilidade em entrevistas por competências",
+      "Boa comunicação oral e escrita",
+    ],
+    benefits: [
+      "Vale Transporte",
+      "Vale Refeição (R$ 35/dia)",
+      "Plano de Saúde Bradesco",
+      "Plano Odontológico",
+      "PLR semestral",
+      "Seguro de Vida em Grupo",
+    ],
+    workHours: "Segunda a Sexta, 8h às 17h",
+    contractType: "CLT — Regime Efetivo",
   },
   {
     id: "2",
@@ -69,6 +94,25 @@ export const JOBS: Job[] = [
     area: "Produção",
     skills: ["produção", "manufatura", "operação", "indústria", "técnico"],
     education: "Ensino Médio",
+    description:
+      "O Operador de Produção atuará diretamente na linha de fabricação de pneus, garantindo a qualidade e eficiência dos processos produtivos. Será responsável pelo monitoramento de máquinas, controle de qualidade in-line e cumprimento das metas de produção. A vaga é para turno rotativo em uma das maiores fábricas da América Latina.",
+    requirements: [
+      "Ensino Médio completo",
+      "Experiência mínima de 1 ano em linha de produção industrial",
+      "Disponibilidade para trabalho em turnos rotativos",
+      "Noções de qualidade e segurança do trabalho",
+      "Curso de NR-12 (Segurança em Máquinas) — desejável",
+    ],
+    benefits: [
+      "Vale Transporte",
+      "Refeitório no local (almoço e jantar)",
+      "Plano de Saúde Unimed",
+      "Plano Odontológico",
+      "Adicional noturno",
+      "Participação nos Lucros e Resultados (PLR)",
+    ],
+    workHours: "Turnos rotativos (manhã/tarde/noite) — 6x2",
+    contractType: "CLT — Regime Efetivo",
   },
   {
     id: "3",
@@ -84,6 +128,24 @@ export const JOBS: Job[] = [
     area: "Engenharia",
     skills: ["engenharia", "mecânica", "estágio", "autocad", "projeto"],
     education: "Superior",
+    description:
+      "O estagiário de Engenharia Mecânica atuará no suporte técnico aos projetos de manutenção e melhoria de processos na linha de montagem de veículos. Participará de reuniões técnicas, elaboração de relatórios e análise de indicadores de produção. Será uma oportunidade única de aprendizado em uma montadora de alcance global.",
+    requirements: [
+      "Cursando Engenharia Mecânica, Mecatrônica ou Produção — a partir do 5º semestre",
+      "Conhecimento em AutoCAD ou SolidWorks",
+      "Conhecimento básico em Excel e relatórios técnicos",
+      "Disponibilidade para estágio de 6h diárias",
+      "Inglês intermediário (desejável)",
+    ],
+    benefits: [
+      "Bolsa auxílio de R$ 1.500",
+      "Vale Transporte",
+      "Vale Refeição no refeitório da empresa",
+      "Seguro de Vida",
+      "Possibilidade de efetivação ao término do estágio",
+    ],
+    workHours: "Segunda a Sexta, 8h às 14h",
+    contractType: "Estágio Curricular Obrigatório ou Não Obrigatório",
   },
   {
     id: "4",
@@ -105,6 +167,25 @@ export const JOBS: Job[] = [
       "secretariado",
     ],
     education: "Ensino Médio",
+    description:
+      "Vaga exclusiva para Pessoas com Deficiência (PCD). O Auxiliar Administrativo prestará suporte às operações do setor, incluindo organização de documentos, atendimento telefônico, controle de agenda e alimentação de sistemas internos. O Banco do Brasil é comprometido com a inclusão e oferece ambiente acessível e adaptado.",
+    requirements: [
+      "Ensino Médio completo",
+      "Laudo médico atualizado comprovando a deficiência (CID)",
+      "Conhecimento básico em Pacote Office (Word e Excel)",
+      "Organização, proatividade e boa comunicação",
+      "Experiência administrativa — desejável mas não obrigatória",
+    ],
+    benefits: [
+      "Vale Transporte",
+      "Vale Alimentação (R$ 850/mês)",
+      "Plano de Saúde",
+      "Plano Odontológico",
+      "Auxílio Creche",
+      "Previdência Privada BB Previdência",
+    ],
+    workHours: "Segunda a Sexta, 9h às 18h",
+    contractType: "CLT — Vaga PCD",
   },
   {
     id: "5",
@@ -120,6 +201,24 @@ export const JOBS: Job[] = [
     area: "Logística",
     skills: ["logística", "estoque", "aprendiz", "jovem aprendiz", "armazém"],
     education: "Ensino Médio",
+    description:
+      "Programa Jovem Aprendiz do Magazine Luiza para a área de Logística. O jovem aprendiz auxiliará nas atividades de recebimento, separação e expedição de mercadorias, aprendendo as rotinas do setor de distribuição. O programa inclui capacitação teórica pelo CIEE com formação profissional certificada.",
+    requirements: [
+      "Idade entre 14 e 22 anos",
+      "Cursando ou ter concluído o Ensino Médio",
+      "Não possuir carteira de trabalho assinada anteriormente (para benefício fiscal)",
+      "Disponibilidade de 4h diárias",
+      "Responsabilidade e pontualidade",
+    ],
+    benefits: [
+      "Salário baseado no salário mínimo proporcional",
+      "Vale Transporte",
+      "Formação profissional gratuita pelo CIEE",
+      "Certificado de conclusão do programa",
+      "Possibilidade de efetivação ao final do programa",
+    ],
+    workHours: "Segunda a Sexta, 4 horas diárias (horário a definir)",
+    contractType: "Contrato de Aprendizagem — CLT",
   },
   {
     id: "6",
@@ -145,6 +244,26 @@ export const JOBS: Job[] = [
       "tecnologia",
     ],
     education: "Superior",
+    description:
+      "A TechVale busca um Desenvolvedor Full Stack para atuar no desenvolvimento e manutenção de plataformas SaaS voltadas para o mercado industrial. Você trabalhará em um ambiente ágil (Scrum), com autonomia para propor soluções e impactar diretamente o produto. A empresa tem crescimento de 80% ao ano e planos de expansão nacional.",
+    requirements: [
+      "Ensino Superior completo ou cursando em Ciência da Computação, Sistemas de Informação ou áreas correlatas",
+      "Experiência comprovada com React.js e Node.js",
+      "Conhecimento em Python (Django ou FastAPI) — desejável",
+      "Experiência com bancos de dados relacionais (PostgreSQL) e NoSQL (MongoDB)",
+      "Familiaridade com Git, Docker e metodologias ágeis",
+      "Inglês para leitura técnica",
+    ],
+    benefits: [
+      "Vale Refeição (R$ 40/dia)",
+      "Plano de Saúde",
+      "Home Office 3x por semana",
+      "Stock Options após 1 ano",
+      "Auxílio Educação (cursos e certificações)",
+      "Day Off no aniversário",
+    ],
+    workHours: "Segunda a Sexta, 9h às 18h (híbrido)",
+    contractType: "CLT ou PJ — negociável",
   },
   {
     id: "7",
@@ -159,6 +278,26 @@ export const JOBS: Job[] = [
     area: "Manutenção",
     skills: ["manutenção", "elétrica", "mecânica", "técnico", "industrial"],
     education: "Técnico",
+    description:
+      "O Técnico de Manutenção Industrial será responsável pela manutenção preventiva, preditiva e corretiva de equipamentos e instalações industriais. Atuará no diagnóstico de falhas elétricas e mecânicas, garantindo a disponibilidade dos equipamentos e a segurança das operações. Reportará ao Supervisor de Manutenção e participará de projetos de melhoria contínua.",
+    requirements: [
+      "Ensino Técnico completo em Eletromecânica, Elétrica ou Mecânica",
+      "Experiência mínima de 3 anos em manutenção industrial",
+      "Conhecimento em manutenção elétrica (NR-10 — obrigatório)",
+      "Habilidade com leitura de esquemas elétricos e mecânicos",
+      "Conhecimento em instrumentação e automação — desejável",
+      "Habilitação para trabalho em altura (NR-35) — desejável",
+    ],
+    benefits: [
+      "Vale Transporte",
+      "Refeitório na empresa",
+      "Plano de Saúde Sul América",
+      "Seguro de Vida",
+      "Participação nos Lucros (PLR)",
+      "Adicional de Periculosidade",
+    ],
+    workHours: "Segunda a Sábado, 7h às 16h (com horas extras ocasionais)",
+    contractType: "CLT — Regime Efetivo",
   },
   {
     id: "8",
@@ -173,6 +312,23 @@ export const JOBS: Job[] = [
     area: "Contabilidade",
     skills: ["contabilidade", "fiscal", "financeiro", "excel", "notas fiscais"],
     education: "Técnico",
+    description:
+      "O Assistente de Contabilidade auxiliará nas rotinas contábeis e fiscais do escritório, atendendo a uma carteira diversificada de clientes. As atividades incluem lançamentos contábeis, conciliação bancária, apuração de tributos (ICMS, ISS, PIS, COFINS) e emissão de notas fiscais. Contrato temporário com possibilidade de efetivação.",
+    requirements: [
+      "Ensino Médio completo; Técnico em Contabilidade ou cursando Ciências Contábeis",
+      "Conhecimento em rotinas fiscais e contábeis",
+      "Experiência com softwares contábeis (Domínio, Contábil ou similares)",
+      "Excel intermediário (planilhas, fórmulas básicas)",
+      "Organização e atenção aos detalhes",
+    ],
+    benefits: [
+      "Vale Transporte",
+      "Vale Refeição (R$ 25/dia)",
+      "Convênio Farmácia",
+      "Possibilidade de efetivação",
+    ],
+    workHours: "Segunda a Sexta, 8h às 17h30",
+    contractType: "Temporário (90 dias com possibilidade de prorrogação)",
   },
   {
     id: "9",
@@ -195,6 +351,26 @@ export const JOBS: Job[] = [
       "medicina",
     ],
     education: "Superior",
+    description:
+      "O(A) Enfermeiro(a) Plantonista atuará em unidade de internação clínica e cirúrgica, sendo responsável pela assistência direta ao paciente, supervisão da equipe de técnicos de enfermagem e cumprimento dos protocolos assistenciais do hospital. A vaga é para plantão de 12x36 horas, com escala mensal definida com antecedência.",
+    requirements: [
+      "Graduação em Enfermagem",
+      "COREN-RJ ativo e regular (obrigatório)",
+      "Experiência mínima de 1 ano em ambiente hospitalar",
+      "Curso de BLS (Suporte Básico de Vida) — desejável",
+      "Disponibilidade para plantões diurnos e noturnos",
+      "Pós-graduação em área clínica — diferencial",
+    ],
+    benefits: [
+      "Vale Transporte",
+      "Refeição no refeitório hospitalar",
+      "Plano de Saúde Amil (titular + 2 dependentes)",
+      "Plano Odontológico",
+      "Adicional Noturno de 30%",
+      "Seguro de Vida",
+    ],
+    workHours: "Plantão 12x36 horas (diurno e noturno)",
+    contractType: "CLT — Regime Efetivo",
   },
 ];
 
