@@ -207,7 +207,7 @@ export default function Mentoria({ onInscricao }: MentoriaProps) {
             <div className="p-6">
               <ul className="space-y-3 mb-6">
                 {[
-                  "2 sessões de mentoria (1h cada)",
+                  "2 sessões de mentoria (45 min cada)",
                   "Revisão completa de currículo",
                   "Otimização do LinkedIn",
                   "Material de apoio exclusivo",

@@ -362,22 +362,14 @@ export default function Avaliador({ onRequestFullReport }: AvaliadorProps) {
               />
             </label>
 
-            <div className="flex gap-3 items-start bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 mb-3">
-              <ShieldCheck className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-              <p className="text-xs text-blue-700 leading-relaxed">
+            <div className="flex gap-3 items-start bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 mb-5">
+              <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+              <p className="text-xs text-blue-800 leading-relaxed">
                 Ao enviar seu currículo, você autoriza análise automatizada para
-                fins de feedback. Não armazenamos cópias do arquivo após
-                processamento.
-              </p>
-            </div>
-            <div className="flex gap-3 items-start bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-5">
-              <span className="shrink-0 mt-0.5">🗓️</span>
-              <p className="text-xs text-amber-800 leading-relaxed">
-                <strong>
-                  Seus dados serão mantidos com segurança por 90 dias
-                </strong>{" "}
-                em nosso banco de dados. A qualquer momento, solicite seu
-                relatório personalizado.
+                fins de feedback. Seus dados serão mantidos com segurança por{" "}
+                <strong>90 dias</strong> em nosso banco de dados de acordo com a
+                LGPD. A qualquer momento, solicite o seu relatório
+                personalizado.
               </p>
             </div>
 

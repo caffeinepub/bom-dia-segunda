@@ -27,7 +27,7 @@ const fullBenefits = [
 ];
 
 const offerIncludes = [
-  "2 sessões de mentoria ao vivo (1h cada)",
+  "2 sessões de mentoria ao vivo (45 min cada)",
   "Revisão completa do seu currículo",
   "Otimização do perfil LinkedIn",
   "Simulação real de entrevista",
