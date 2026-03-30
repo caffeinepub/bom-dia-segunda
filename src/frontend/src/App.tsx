@@ -12,6 +12,7 @@ import Mentoria from "@/components/Mentoria";
 import MentoriaInscricao from "@/components/MentoriaInscricao";
 import ProdutoDetalhe from "@/components/ProdutoDetalhe";
 import PublicarVaga from "@/components/PublicarVaga";
+import RelatorioVenda from "@/components/RelatorioVenda";
 import Vagas from "@/components/Vagas";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
 import AdminPanel from "@/components/admin/AdminPanel";
@@ -25,6 +26,11 @@ export default function App() {
   const [showMentoriaInscricao, setShowMentoriaInscricao] = useState(false);
   const [blogPostId, setBlogPostId] = useState<string | null>(null);
   const [productId, setProductId] = useState<string | null>(null);
+  const [showRelatorioVenda, setShowRelatorioVenda] = useState(false);
+  const [relatorioData, setRelatorioData] = useState<{
+    overallScore: number;
+    candidateName: string;
+  } | null>(null);
 
   useEffect(() => {
     function onHashChange() {
@@ -52,6 +58,22 @@ export default function App() {
     return (
       <>
         <PublicarVaga />
+        <Toaster />
+      </>
+    );
+  }
+
+  if (showRelatorioVenda && relatorioData) {
+    return (
+      <>
+        <RelatorioVenda
+          overallScore={relatorioData.overallScore}
+          candidateName={relatorioData.candidateName}
+          onBuy={() => {
+            setShowRelatorioVenda(false);
+          }}
+          onBack={() => setShowRelatorioVenda(false)}
+        />
         <Toaster />
       </>
     );
@@ -104,7 +126,13 @@ export default function App() {
         />
         <Vagas initialKeyword={searchKeyword} initialCity={searchCity} />
         <Estatisticas />
-        <Avaliador />
+        <Avaliador
+          onRequestFullReport={(score, name) => {
+            setRelatorioData({ overallScore: score, candidateName: name });
+            setShowRelatorioVenda(true);
+            window.scrollTo(0, 0);
+          }}
+        />
         <Mentoria onInscricao={() => setShowMentoriaInscricao(true)} />
         <Loja onViewProduct={(id) => setProductId(id)} />
         <Blog onReadPost={(id) => setBlogPostId(id)} />

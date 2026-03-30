@@ -18,7 +18,6 @@ const ebooks = [
 ];
 
 const fullBenefits = [
-  "Mentoria gratuita para primeiro emprego",
   "Análise personalizada do currículo e perfil no LinkedIn",
   "Mapa de carreira com metas e próximos passos claros",
   "Preparação para entrevistas com simulações reais",

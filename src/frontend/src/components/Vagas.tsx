@@ -16,6 +16,7 @@ import {
   DollarSign,
   ExternalLink,
   Globe,
+  Heart,
   MapPin,
   Upload,
 } from "lucide-react";
@@ -30,7 +31,7 @@ const badgeStyles: Record<string, string> = {
   Remoto: "bg-gray-100 text-gray-700 border-gray-200",
 };
 
-function JobCard({ job }: { job: Job }) {
+function JobCard({ job, isMatch }: { job: Job; isMatch?: boolean }) {
   const badge = Array.isArray(job.badge) ? job.badge[0] : job.badge;
   const badges = Array.isArray(job.badge)
     ? job.badge
@@ -39,7 +40,10 @@ function JobCard({ job }: { job: Job }) {
       : [];
 
   return (
-    <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 flex flex-col">
+    <div className="relative bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 flex flex-col">
+      {isMatch && (
+        <Heart className="absolute top-3 right-3 w-4 h-4 text-red-500 fill-red-500 opacity-80 z-10" />
+      )}
       <div className="p-5 flex-1">
         {badge && (
           <span
@@ -558,7 +562,7 @@ export default function Vagas({
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                   {cvMatches.map((job) => (
-                    <JobCard key={job.id} job={job} />
+                    <JobCard key={job.id} job={job} isMatch={true} />
                   ))}
                 </div>
               </div>

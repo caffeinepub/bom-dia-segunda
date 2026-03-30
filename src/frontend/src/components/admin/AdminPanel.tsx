@@ -38,6 +38,7 @@ import { useActor } from "@/hooks/useActor";
 import {
   BookOpen,
   Briefcase,
+  CreditCard,
   FileText,
   Globe,
   Image,
@@ -1512,6 +1513,7 @@ function MentoriaTab() {
   const [subTab, setSubTab] = useState<
     "pacotes" | "solicitacoes" | "depoimentos"
   >("pacotes");
+  const [pagamentoHabilitado, setPagamentoHabilitado] = useState(false);
 
   function openNewPkg() {
     setEditingPkg(null);
@@ -1576,6 +1578,47 @@ function MentoriaTab() {
 
       {subTab === "pacotes" && (
         <div>
+          <div className="bg-white rounded-xl border p-4 shadow-sm flex items-center justify-between mb-4">
+            <div>
+              <p className="font-semibold text-gray-900">Pagamento Online</p>
+              <p className="text-sm text-gray-500">
+                Habilita o botão de pagamento nos pacotes de mentoria
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              {pagamentoHabilitado ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-green-600 font-medium">
+                    Pagamento Habilitado ✓
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    data-ocid="admin.mentoria.payment_toggle_button"
+                    onClick={() => {
+                      setPagamentoHabilitado(false);
+                      toast.info("Pagamento desabilitado.");
+                    }}
+                  >
+                    Desabilitar
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  className="bg-green-600 text-white hover:bg-green-700"
+                  size="sm"
+                  data-ocid="admin.mentoria.payment_toggle_button"
+                  onClick={() => {
+                    setPagamentoHabilitado(true);
+                    toast.success("Pagamento habilitado para mentoria!");
+                  }}
+                >
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  Habilitar Pagamento
+                </Button>
+              )}
+            </div>
+          </div>
           <div className="flex justify-end mb-3">
             <Button
               className="bg-[#d7350d] text-white hover:bg-[#c02e0c]"
@@ -1818,9 +1861,43 @@ function ImagensTab() {
 
   return (
     <div>
-      <h2 className="text-lg font-bold text-[#1a1a1a] mb-4">
-        Gerenciamento de Imagens
-      </h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-bold text-[#1a1a1a]">
+          Gerenciamento de Imagens
+        </h2>
+        <label
+          data-ocid="admin.imagens.import_button"
+          className="cursor-pointer"
+        >
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              const files = Array.from(e.target.files ?? []);
+              if (!files.length) return;
+              setImages((prev) => [
+                ...prev,
+                ...files.map((file) => ({
+                  key: crypto.randomUUID(),
+                  label: file.name,
+                  path: URL.createObjectURL(file),
+                  note: "Importada",
+                })),
+              ]);
+              toast.success(`${files.length} imagem(ns) importada(s)!`);
+            }}
+          />
+          <Button
+            asChild={false}
+            className="bg-[#d7350d] text-white hover:bg-[#c02e0c]"
+            onClick={() => {}}
+          >
+            📥 Importar Imagens
+          </Button>
+        </label>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {images.map((img) => (
           <div
@@ -1867,88 +1944,92 @@ function ImagensTab() {
 /* =========================================================
    NEWSLETTER TAB
    ========================================================= */
-const SAMPLE_SUBSCRIBERS = [
-  {
-    id: "1",
-    email: "joao.silva@gmail.com",
-    name: "João Silva",
-    date: "01/03/2026",
-    status: "Ativo",
-  },
-  {
-    id: "2",
-    email: "maria.santos@hotmail.com",
-    name: "Maria Santos",
-    date: "05/03/2026",
-    status: "Ativo",
-  },
-  {
-    id: "3",
-    email: "carlos.rj@yahoo.com",
-    name: "Carlos",
-    date: "08/03/2026",
-    status: "Ativo",
-  },
-  {
-    id: "4",
-    email: "ana.lima@gmail.com",
-    name: "Ana Lima",
-    date: "10/03/2026",
-    status: "Cancelado",
-  },
-  {
-    id: "5",
-    email: "pedro.tech@gmail.com",
-    name: "Pedro Alves",
-    date: "12/03/2026",
-    status: "Ativo",
-  },
-  {
-    id: "6",
-    email: "lucia.mello@outlook.com",
-    name: "Lúcia Mello",
-    date: "14/03/2026",
-    status: "Ativo",
-  },
-  {
-    id: "7",
-    email: "roberto.valengo@gmail.com",
-    name: "Roberto V.",
-    date: "15/03/2026",
-    status: "Ativo",
-  },
-  {
-    id: "8",
-    email: "fernanda.rj@gmail.com",
-    name: "Fernanda Costa",
-    date: "16/03/2026",
-    status: "Ativo",
-  },
-  {
-    id: "9",
-    email: "gabriel.souza@gmail.com",
-    name: "Gabriel S.",
-    date: "18/03/2026",
-    status: "Cancelado",
-  },
-  {
-    id: "10",
-    email: "renata.bds@gmail.com",
-    name: "Renata BDS",
-    date: "20/03/2026",
-    status: "Ativo",
-  },
-];
-
 function NewsletterTab() {
   const [nlSubTab, setNlSubTab] = useState<"inscritos" | "enviar">("inscritos");
   const [nlSubject, setNlSubject] = useState("");
   const [nlMessage, setNlMessage] = useState("");
   const [showPreview, setShowPreview] = useState(false);
+  const [subscribers, setSubscribers] = useState([
+    {
+      id: "1",
+      email: "joao.silva@gmail.com",
+      name: "João Silva",
+      date: "01/03/2026",
+      status: "Ativo",
+    },
+    {
+      id: "2",
+      email: "maria.santos@hotmail.com",
+      name: "Maria Santos",
+      date: "05/03/2026",
+      status: "Ativo",
+    },
+    {
+      id: "3",
+      email: "carlos.rj@yahoo.com",
+      name: "Carlos",
+      date: "08/03/2026",
+      status: "Ativo",
+    },
+    {
+      id: "4",
+      email: "ana.lima@gmail.com",
+      name: "Ana Lima",
+      date: "10/03/2026",
+      status: "Cancelado",
+    },
+    {
+      id: "5",
+      email: "pedro.tech@gmail.com",
+      name: "Pedro Alves",
+      date: "12/03/2026",
+      status: "Ativo",
+    },
+    {
+      id: "6",
+      email: "lucia.mello@outlook.com",
+      name: "Lúcia Mello",
+      date: "14/03/2026",
+      status: "Ativo",
+    },
+    {
+      id: "7",
+      email: "roberto.valengo@gmail.com",
+      name: "Roberto V.",
+      date: "15/03/2026",
+      status: "Ativo",
+    },
+    {
+      id: "8",
+      email: "fernanda.rj@gmail.com",
+      name: "Fernanda Costa",
+      date: "16/03/2026",
+      status: "Ativo",
+    },
+    {
+      id: "9",
+      email: "gabriel.souza@gmail.com",
+      name: "Gabriel S.",
+      date: "18/03/2026",
+      status: "Cancelado",
+    },
+    {
+      id: "10",
+      email: "renata.bds@gmail.com",
+      name: "Renata BDS",
+      date: "20/03/2026",
+      status: "Ativo",
+    },
+  ]);
+
+  function removeSubscriber(id: string) {
+    setSubscribers((prev) => prev.filter((s) => s.id !== id));
+    toast.success("Inscrito removido com sucesso!");
+  }
 
   function exportCSV() {
     const header = "Email,Nome,Data,Status";
-    const rows = SAMPLE_SUBSCRIBERS.map(
+    const rows = subscribers.map(
       (s) => `${s.email},${s.name},${s.date},${s.status}`,
     );
     const csv = [header, ...rows].join("\n");
@@ -1987,8 +2068,8 @@ function NewsletterTab() {
         <div>
           <div className="flex justify-between items-center mb-3">
             <p className="text-sm text-gray-500">
-              {SAMPLE_SUBSCRIBERS.filter((s) => s.status === "Ativo").length}{" "}
-              inscritos ativos
+              {subscribers.filter((s) => s.status === "Ativo").length} inscritos
+              ativos
             </p>
             <Button
               variant="outline"
@@ -2007,10 +2088,11 @@ function NewsletterTab() {
                   <TableHead>Nome</TableHead>
                   <TableHead>Data de Inscrição</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {SAMPLE_SUBSCRIBERS.map((s, i) => (
+                {subscribers.map((s, i) => (
                   <TableRow
                     key={s.id}
                     data-ocid={`admin.newsletter.item.${i + 1}`}
@@ -2028,6 +2110,17 @@ function NewsletterTab() {
                       >
                         {s.status}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <button
+                        type="button"
+                        onClick={() => removeSubscriber(s.id)}
+                        className="text-red-500 hover:text-red-700 transition-colors"
+                        title="Excluir inscrito"
+                        data-ocid={`admin.newsletter.delete_button.${i + 1}`}
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -2058,6 +2151,17 @@ function NewsletterTab() {
               data-ocid="admin.newsletter.textarea"
             />
           </div>
+          <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-xs text-gray-600">
+            <p className="font-semibold mb-1">
+              Rodapé automático incluído em cada envio:
+            </p>
+            <p>
+              &ldquo;Para cancelar sua inscrição neste boletim informativo,
+              responda este e-mail com o assunto <strong>DESCADASTRAR</strong>{" "}
+              ou clique aqui: [link de descadastro]. Seu pedido será processado
+              em até 48 horas.&rdquo;
+            </p>
+          </div>
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -2086,6 +2190,11 @@ function NewsletterTab() {
               </h4>
               <p className="text-sm text-gray-700 whitespace-pre-wrap">
                 {nlMessage || "(sem conteúdo)"}
+              </p>
+              <hr className="my-3 border-gray-200" />
+              <p className="text-xs text-gray-400 italic">
+                Para cancelar sua inscrição, responda este e-mail com o assunto
+                DESCADASTRAR.
               </p>
             </div>
           )}

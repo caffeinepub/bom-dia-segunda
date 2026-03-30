@@ -10,6 +10,8 @@ import {
   ArrowRight,
   CheckCircle2,
   FileText,
+  Heart,
+  HeartCrack,
   Lightbulb,
   Linkedin,
   MapPin,
@@ -30,9 +32,10 @@ interface CVResult {
   improvements: string[];
   linkedinTips: string[];
   highlightSkills: string[];
+  matchScore?: number;
 }
 
-function simulateEvaluation(input: string): CVResult {
+function simulateEvaluation(input: string, jobDesc?: string): CVResult {
   const words = input.toLowerCase().split(/\s+/).filter(Boolean);
   const hasObjective = /objetivo|perfil|sobre mim|resumo/i.test(input);
   const hasExperience = /experiência|empresa|cargo|trabalhei|atuei/i.test(
@@ -117,6 +120,25 @@ function simulateEvaluation(input: string): CVResult {
     allHighlight.length,
   );
 
+  // Compute match score if job description provided
+  let matchScore: number | undefined;
+  if (jobDesc && jobDesc.trim().length > 0) {
+    const jobWords = new Set(
+      jobDesc
+        .toLowerCase()
+        .split(/\W+/)
+        .filter((w) => w.length > 3),
+    );
+    const inputWords = input
+      .toLowerCase()
+      .split(/\W+/)
+      .filter((w) => w.length > 3);
+    if (jobWords.size > 0) {
+      const matches = inputWords.filter((w) => jobWords.has(w)).length;
+      matchScore = Math.min(100, Math.round((matches / jobWords.size) * 100));
+    }
+  }
+
   return {
     overallScore: score,
     atsScore,
@@ -131,6 +153,7 @@ function simulateEvaluation(input: string): CVResult {
       "Ative a opção 'Aberto a oportunidades' nas configurações do perfil",
     ],
     highlightSkills: allHighlight.slice(0, highlightCount),
+    matchScore,
   };
 }
 
@@ -184,15 +207,18 @@ function ScoreRing({
   );
 }
 
-export default function Avaliador() {
+interface AvaliadorProps {
+  onRequestFullReport: (score: number, name: string) => void;
+}
+
+export default function Avaliador({ onRequestFullReport }: AvaliadorProps) {
   const { actor } = useActor();
   const [jobDesc, setJobDesc] = useState("");
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [fileName, setFileName] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<CVResult | null>(null);
-  const [resumeId, setResumeId] = useState("");
-  const [requestingReport, setRequestingReport] = useState(false);
+  const [_resumeId, setResumeId] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Lead capture fields
@@ -220,7 +246,7 @@ export default function Avaliador() {
     if (!canSubmit) return;
     setLoading(true);
     await new Promise((r) => setTimeout(r, 1800));
-    const evaluated = simulateEvaluation(`${fileName} ${jobDesc}`);
+    const evaluated = simulateEvaluation(`${fileName} ${jobDesc}`, jobDesc);
     setResult(evaluated);
 
     const newId = crypto.randomUUID();
@@ -256,19 +282,6 @@ export default function Avaliador() {
         .getElementById("resultado-cv")
         ?.scrollIntoView({ behavior: "smooth" });
     }, 100);
-  };
-
-  const handleRequestReport = async () => {
-    setRequestingReport(true);
-    try {
-      if (actor) {
-        await actor.requestReport(resumeId);
-      }
-    } catch (_err) {
-      // ignore backend errors
-    }
-    setRequestingReport(false);
-    toast.success("Relatório solicitado! Entraremos em contato em breve.");
   };
 
   const scoreColor = (v: number) =>
@@ -349,12 +362,22 @@ export default function Avaliador() {
               />
             </label>
 
-            <div className="flex gap-3 items-start bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 mb-5">
+            <div className="flex gap-3 items-start bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 mb-3">
               <ShieldCheck className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
               <p className="text-xs text-blue-700 leading-relaxed">
                 Ao enviar seu currículo, você autoriza análise automatizada para
                 fins de feedback. Não armazenamos cópias do arquivo após
                 processamento.
+              </p>
+            </div>
+            <div className="flex gap-3 items-start bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-5">
+              <span className="shrink-0 mt-0.5">🗓️</span>
+              <p className="text-xs text-amber-800 leading-relaxed">
+                <strong>
+                  Seus dados serão mantidos com segurança por 90 dias
+                </strong>{" "}
+                em nosso banco de dados. A qualquer momento, solicite seu
+                relatório personalizado.
               </p>
             </div>
 
@@ -552,6 +575,12 @@ export default function Avaliador() {
                 color: "text-purple-600 bg-purple-50",
                 title: "Análise do LinkedIn",
                 desc: "Dicas específicas para otimizar seu perfil no LinkedIn e aumentar a visibilidade para recrutadores.",
+              },
+              {
+                icon: Heart,
+                color: "text-red-500 bg-red-50",
+                title: "Match Vaga",
+                desc: "Verificamos a compatibilidade do seu currículo com a descrição da vaga. Exibido apenas quando você preencher a descrição da vaga.",
               },
             ].map((item) => (
               <div
@@ -757,6 +786,61 @@ export default function Avaliador() {
                   ))}
                 </ul>
               </div>
+
+              {/* Card 5: Match com a Vaga (only when jobDesc is present) */}
+              {result.matchScore !== undefined && jobDesc && (
+                <div className="bg-card rounded-2xl border border-border p-6 md:col-span-2">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
+                      {result.matchScore >= 55 ? (
+                        <Heart className="w-5 h-5 text-red-500 fill-red-500" />
+                      ) : (
+                        <HeartCrack className="w-5 h-5 text-gray-400" />
+                      )}
+                    </div>
+                    <h4 className="font-semibold text-base">
+                      Match com a Vaga
+                    </h4>
+                  </div>
+
+                  <div
+                    className={`rounded-xl border p-4 mb-4 ${result.matchScore >= 55 ? "bg-red-50 border-red-100" : "bg-gray-50 border-gray-200"}`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="flex flex-col items-center">
+                        {result.matchScore >= 55 ? (
+                          <Heart className="w-10 h-10 text-red-500 fill-red-500 mb-1" />
+                        ) : (
+                          <HeartCrack className="w-10 h-10 text-gray-400 mb-1" />
+                        )}
+                        <span
+                          className={`text-3xl font-black ${result.matchScore >= 55 ? "text-red-500" : "text-gray-500"}`}
+                        >
+                          {result.matchScore}%
+                        </span>
+                      </div>
+                      <div className="flex-1">
+                        <p
+                          className={`font-semibold text-sm mb-2 ${result.matchScore >= 55 ? "text-red-600" : "text-gray-600"}`}
+                        >
+                          {result.matchScore >= 55
+                            ? "Boa compatibilidade com a vaga"
+                            : "Baixa compatibilidade com a vaga"}
+                        </p>
+                        <Progress
+                          value={result.matchScore}
+                          className="h-3 rounded-full"
+                        />
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {result.matchScore >= 55
+                            ? "Seu currículo apresenta boa correspondência com os requisitos desta vaga."
+                            : "Considere ajustar seu currículo para incluir mais termos e competências da descrição da vaga."}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* CTA Mentoria banner */}
@@ -786,29 +870,23 @@ export default function Avaliador() {
               <h4 className="font-bold text-lg mb-2">
                 Relatório Completo (até 5 páginas)
               </h4>
-              <p className="text-muted-foreground text-sm mb-4 max-w-md mx-auto">
+              <p className="text-muted-foreground text-sm mb-2 max-w-md mx-auto">
                 Receba uma análise detalhada do seu currículo com recomendações
                 personalizadas, análise de mercado e plano de ação para sua
                 carreira.
               </p>
+              <p className="text-xs text-muted-foreground mb-4 max-w-md mx-auto">
+                ✅ Seu currículo foi salvo com segurança. Ele ficará disponível
+                por <strong>90 dias</strong> — a qualquer momento você pode
+                solicitar seu relatório personalizado.
+              </p>
               <Button
                 type="button"
-                className="bg-primary hover:bg-primary/90 text-white px-8"
-                onClick={handleRequestReport}
-                disabled={requestingReport}
+                className="bg-primary hover:bg-primary/90 text-white px-8 text-base font-bold"
+                onClick={() => onRequestFullReport(result.overallScore, nome)}
                 data-ocid="avaliador.secondary_button"
               >
-                {requestingReport ? (
-                  <>
-                    <span className="animate-spin mr-2 border-2 border-white border-t-transparent rounded-full w-4 h-4 inline-block" />
-                    Solicitando...
-                  </>
-                ) : (
-                  <>
-                    <FileText className="w-4 h-4 mr-2" />
-                    Solicitar Relatório Completo
-                  </>
-                )}
+                Ver Relatório Completo — R$ 19,90 →
               </Button>
             </div>
           </div>
