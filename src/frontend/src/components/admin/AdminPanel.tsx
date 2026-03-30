@@ -2801,14 +2801,58 @@ function ConfiguracoesTab() {
             <h3 className="font-semibold text-gray-800">
               Configurações de Coleta
             </h3>
-            <div className="flex items-center gap-2 text-sm">
-              <span className="font-medium text-gray-600">Frequência:</span>
-              <span className="text-gray-500">
-                Semanal (todo domingo à noite)
-              </span>
-              <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">
-                Agendado
-              </span>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-gray-600">Frequência:</span>
+                <span className="text-gray-500">
+                  Diária — inicia às 23:50 e conclui ao compilar todas as vagas
+                </span>
+                <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">
+                  Agendado
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-gray-600">
+                  Período atual:
+                </span>
+                <span className="text-[#d7350d] font-medium">
+                  {(() => {
+                    const now = new Date();
+                    const day = now.getDay();
+                    const start = new Date(now);
+                    start.setDate(now.getDate() - day);
+                    start.setHours(0, 0, 0, 0);
+                    const end = new Date(start);
+                    end.setDate(start.getDate() + 6);
+                    const fmt = (d: Date) =>
+                      d.toLocaleDateString("pt-BR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      });
+                    return `${fmt(start)} (dom) a ${fmt(end)} (sáb)`;
+                  })()}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-gray-600">
+                  Geolocalização:
+                </span>
+                <span className="text-gray-500">
+                  Vagas restritas às cidades cadastradas (exceto remotas)
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-gray-600">
+                  Tag automática:
+                </span>
+                <span className="bg-green-100 text-green-700 text-xs px-2.5 py-0.5 rounded-full border border-green-200 font-semibold">
+                  Nova
+                </span>
+                <span className="text-gray-500">
+                  aplicada em vagas coletadas na última rodada
+                </span>
+              </div>
             </div>
             <div>
               <Label>Palavras-chave prioritárias</Label>

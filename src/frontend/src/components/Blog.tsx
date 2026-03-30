@@ -26,7 +26,11 @@ function mapMockToDisplay(post: (typeof BLOG_POSTS)[0]): BlogDisplay {
   };
 }
 
-export default function Blog() {
+interface BlogProps {
+  onReadPost: (id: string) => void;
+}
+
+export default function Blog({ onReadPost }: BlogProps) {
   const { actor } = useActor();
   const [posts, setPosts] = useState<BlogDisplay[]>(
     BLOG_POSTS.map(mapMockToDisplay),
@@ -52,7 +56,7 @@ export default function Blog() {
           setPosts(mapped);
         }
       } catch {
-        // keep mockData
+        /* keep mockData */
       }
     }
     load();
@@ -105,13 +109,14 @@ export default function Blog() {
                       {post.readTime}
                     </span>
                   </div>
-                  <a
-                    href="#blog"
+                  <button
+                    type="button"
+                    onClick={() => onReadPost(post.id)}
                     className="text-primary font-medium flex items-center gap-1 hover:gap-2 transition-all"
                     data-ocid="blog.link"
                   >
                     Ler <ArrowRight className="w-3.5 h-3.5" />
-                  </a>
+                  </button>
                 </div>
               </div>
             </article>

@@ -31,7 +31,11 @@ function mockToDisplay(p: (typeof PRODUCTS)[0]): ProductDisplay {
   };
 }
 
-export default function Loja() {
+interface LojaProps {
+  onViewProduct: (id: string) => void;
+}
+
+export default function Loja({ onViewProduct }: LojaProps) {
   const { actor } = useActor();
   const [products, setProducts] = useState<ProductDisplay[]>(
     PRODUCTS.map(mockToDisplay),
@@ -57,22 +61,19 @@ export default function Loja() {
           if (mapped.length > 0) setProducts(mapped);
         }
       } catch {
-        // keep mockData
+        /* keep mockData */
       }
     }
     load();
   }, [actor]);
 
   const total = products.length;
-
   const prev = () => setCurrentIndex((i) => (i === 0 ? total - 1 : i - 1));
   const next = () => setCurrentIndex((i) => (i === total - 1 ? 0 : i + 1));
-
   const getVisible = (perPage: number): ProductDisplay[] => {
     const items: ProductDisplay[] = [];
-    for (let i = 0; i < perPage; i++) {
+    for (let i = 0; i < perPage; i++)
       items.push(products[(currentIndex + i) % total]);
-    }
     return items;
   };
 
@@ -114,17 +115,29 @@ export default function Loja() {
           <div className="overflow-hidden">
             <div className="grid grid-cols-1 sm:hidden gap-6 max-w-xs mx-auto">
               {getVisible(1).map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onViewProduct={onViewProduct}
+                />
               ))}
             </div>
             <div className="hidden sm:grid md:hidden grid-cols-2 gap-6 max-w-2xl mx-auto">
               {getVisible(2).map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onViewProduct={onViewProduct}
+                />
               ))}
             </div>
             <div className="hidden md:grid grid-cols-4 gap-6 max-w-6xl mx-auto">
               {getVisible(4).map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onViewProduct={onViewProduct}
+                />
               ))}
             </div>
           </div>
@@ -148,13 +161,20 @@ export default function Loja() {
   );
 }
 
-function ProductCard({ product }: { product: ProductDisplay }) {
+function ProductCard({
+  product,
+  onViewProduct,
+}: { product: ProductDisplay; onViewProduct: (id: string) => void }) {
   return (
     <div
       className="bg-card rounded-xl overflow-hidden shadow-card border border-border card-hover flex flex-col"
       data-ocid={`loja.item.${product.id}`}
     >
-      <div className="aspect-[3/4] overflow-hidden bg-muted relative">
+      <button
+        type="button"
+        className="aspect-[3/4] overflow-hidden bg-muted relative cursor-pointer w-full"
+        onClick={() => onViewProduct(product.id)}
+      >
         <img
           src={product.image}
           alt={product.title}
@@ -166,24 +186,43 @@ function ProductCard({ product }: { product: ProductDisplay }) {
             {product.badge}
           </span>
         )}
-      </div>
+      </button>
       <div className="p-4 flex flex-col flex-1">
-        <h3 className="font-semibold text-sm text-foreground mb-1 line-clamp-2 flex-1">
+        <button
+          type="button"
+          className="font-semibold text-sm text-foreground mb-1 line-clamp-2 flex-1 cursor-pointer hover:text-primary transition-colors text-left"
+          onClick={() => onViewProduct(product.id)}
+        >
           {product.title}
-        </h3>
+        </button>
         <p className="text-xs text-muted-foreground mb-3">{product.author}</p>
         <div className="flex items-center justify-between">
           <span className="font-bold text-primary">{product.price}</span>
-          <Button
-            size="sm"
-            className="bg-primary text-white hover:bg-primary/90"
-            asChild
-            data-ocid="loja.primary_button"
-          >
-            <a href={product.buyUrl} target="_blank" rel="noopener noreferrer">
-              <ShoppingCart className="w-3.5 h-3.5 mr-1" /> Comprar
-            </a>
-          </Button>
+          <div className="flex gap-1">
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-primary text-primary hover:bg-primary/5 text-xs px-2"
+              onClick={() => onViewProduct(product.id)}
+              data-ocid="loja.detail_button"
+            >
+              Ver
+            </Button>
+            <Button
+              size="sm"
+              className="bg-primary text-white hover:bg-primary/90"
+              asChild
+              data-ocid="loja.primary_button"
+            >
+              <a
+                href={product.buyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <ShoppingCart className="w-3.5 h-3.5" />
+              </a>
+            </Button>
+          </div>
         </div>
       </div>
     </div>

@@ -264,6 +264,32 @@ export default function Vagas({
   const [cvLoading, setCvLoading] = useState(false);
   const [cvMatches, setCvMatches] = useState<Job[] | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [lastUpdateTime, setLastUpdateTime] = useState<string | null>(null);
+  const [isAutoUpdating, setIsAutoUpdating] = useState(false);
+
+  // Compute current week period: Sunday to Saturday
+  function getWeekPeriod(): { start: Date; end: Date } {
+    const now = new Date();
+    const day = now.getDay(); // 0=Sun, 6=Sat
+    const start = new Date(now);
+    start.setDate(now.getDate() - day);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    end.setHours(23, 59, 59, 999);
+    return { start, end };
+  }
+
+  function formatWeekPeriod(): string {
+    const { start, end } = getWeekPeriod();
+    const fmt = (d: Date) =>
+      d.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    return `Período: ${fmt(start)} (dom) a ${fmt(end)} (sáb)`;
+  }
 
   useEffect(() => {
     if (!actor) return;
@@ -295,6 +321,49 @@ export default function Vagas({
     }
     loadVagas();
   }, [actor]);
+
+  // Schedule auto-update at 23:50 daily
+  useEffect(() => {
+    function scheduleNextUpdate() {
+      const now = new Date();
+      const target = new Date(now);
+      target.setHours(23, 50, 0, 0);
+      if (now >= target) target.setDate(target.getDate() + 1);
+      const msUntil = target.getTime() - now.getTime();
+      return setTimeout(() => {
+        setIsAutoUpdating(true);
+        // Simulate scraping delay (3-8 seconds in UI)
+        const delay = 3000 + Math.random() * 5000;
+        setTimeout(() => {
+          // Mark recent jobs (first few) as Nova
+          setJobs((prev) =>
+            prev.map((j, idx) => {
+              if (idx < 3) {
+                const badges = Array.isArray(j.badge)
+                  ? j.badge
+                  : j.badge
+                    ? [j.badge]
+                    : [];
+                if (!badges.includes("Nova")) badges.unshift("Nova");
+                return { ...j, badge: badges as Job["badge"] };
+              }
+              return j;
+            }),
+          );
+          setLastUpdateTime(
+            new Date().toLocaleTimeString("pt-BR", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          );
+          setIsAutoUpdating(false);
+          scheduleNextUpdate();
+        }, delay);
+      }, msUntil);
+    }
+    const timer = scheduleNextUpdate();
+    return () => clearTimeout(timer);
+  }, []);
 
   function simulateCVMatch(fileName: string): Job[] {
     const name = fileName.toLowerCase();
@@ -356,6 +425,19 @@ export default function Vagas({
           <p className="text-gray-600">
             Oportunidades selecionadas para a região Sul Fluminense
           </p>
+          <p className="text-sm text-[#d7350d] font-medium mt-1">
+            {formatWeekPeriod()}
+          </p>
+          {isAutoUpdating && (
+            <p className="text-xs text-gray-500 mt-1 animate-pulse">
+              🔄 Atualizando vagas automaticamente...
+            </p>
+          )}
+          {lastUpdateTime && !isAutoUpdating && (
+            <p className="text-xs text-gray-400 mt-1">
+              Última atualização automática: {lastUpdateTime}
+            </p>
+          )}
         </div>
 
         {/* City filter pills */}
