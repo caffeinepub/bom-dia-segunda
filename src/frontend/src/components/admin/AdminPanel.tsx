@@ -1208,6 +1208,23 @@ function BlogTab() {
     }
   }
 
+  async function handleTogglePublished(post: BlogPost) {
+    const updated = {
+      ...post,
+      published: !post.published,
+      updatedAt: nowNano(),
+    };
+    try {
+      await actor!.updateBlogPost(updated);
+      toast.success(
+        updated.published ? "Artigo publicado!" : "Artigo despublicado!",
+      );
+      load();
+    } catch {
+      toast.error("Erro ao atualizar artigo.");
+    }
+  }
+
   function getStatusBadge(published: boolean) {
     return published ? (
       <Badge className="bg-green-100 text-green-700">Publicado</Badge>
@@ -1265,6 +1282,18 @@ function BlogTab() {
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-2">
+                    <button
+                      type="button"
+                      className={`text-xs px-2 py-0.5 rounded font-medium border transition-colors ${
+                        p.published
+                          ? "border-orange-400 text-orange-600 hover:bg-orange-50"
+                          : "border-green-500 text-green-600 hover:bg-green-50"
+                      }`}
+                      onClick={() => handleTogglePublished(p)}
+                      data-ocid={`admin.blog.toggle_button.${i + 1}`}
+                    >
+                      {p.published ? "Desabilitar" : "Habilitar"}
+                    </button>
                     <button
                       type="button"
                       className="text-blue-500 hover:text-blue-700 text-xs underline"
@@ -2115,11 +2144,12 @@ function NewsletterTab() {
                       <button
                         type="button"
                         onClick={() => removeSubscriber(s.id)}
-                        className="text-red-500 hover:text-red-700 transition-colors"
+                        className="flex items-center gap-1 text-xs px-2 py-1 rounded border border-red-400 text-red-600 hover:bg-red-50 transition-colors font-medium"
                         title="Excluir inscrito"
                         data-ocid={`admin.newsletter.delete_button.${i + 1}`}
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={12} />
+                        Excluir
                       </button>
                     </TableCell>
                   </TableRow>
@@ -2285,6 +2315,19 @@ function LojaTab() {
     }
   }
 
+  async function handleToggleAvailable(p: Product) {
+    const updated = { ...p, available: !p.available };
+    try {
+      await actor!.updateProduct(updated);
+      toast.success(
+        updated.available ? "Produto habilitado!" : "Produto desabilitado!",
+      );
+      load();
+    } catch {
+      toast.error("Erro ao atualizar produto.");
+    }
+  }
+
   async function savePayment() {
     try {
       await actor!.savePaymentConfig({
@@ -2352,6 +2395,18 @@ function LojaTab() {
                   <div className="flex gap-2">
                     <button
                       type="button"
+                      className={`text-xs px-2 py-0.5 rounded font-medium border transition-colors ${
+                        p.available
+                          ? "border-orange-400 text-orange-600 hover:bg-orange-50"
+                          : "border-green-500 text-green-600 hover:bg-green-50"
+                      }`}
+                      onClick={() => handleToggleAvailable(p)}
+                      data-ocid={`admin.loja.toggle_button.${i + 1}`}
+                    >
+                      {p.available ? "Desabilitar" : "Habilitar"}
+                    </button>
+                    <button
+                      type="button"
                       className="text-blue-500 hover:text-blue-700 text-xs underline"
                       onClick={() => openEdit(p)}
                       data-ocid={`admin.loja.edit_button.${i + 1}`}
@@ -2372,6 +2427,16 @@ function LojaTab() {
             ))}
           </TableBody>
         </Table>
+      </div>
+
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mx-0 mb-4">
+        <p className="text-sm text-blue-700 font-medium">💡 Página de Venda</p>
+        <p className="text-xs text-blue-600 mt-1">
+          Cada produto possui uma página de venda própria no estilo marketplace.
+          Configure os detalhes acima para criar uma experiência completa de
+          compra. Use "Habilitar/Desabilitar" para controlar a visibilidade no
+          site.
+        </p>
       </div>
 
       <div className="bg-white rounded-xl border p-5 shadow-sm">
@@ -2486,13 +2551,109 @@ function LojaTab() {
               />
             </div>
             <div>
-              <Label>Link de Pagamento</Label>
+              <Label>Descrição Completa (Página de Vendas)</Label>
+              <Textarea
+                className="min-h-[100px]"
+                placeholder="Descrição detalhada do produto para a página de venda..."
+                value={(form as any).fullDescription ?? ""}
+                onChange={(e) =>
+                  setForm(
+                    (f) => ({ ...f, fullDescription: e.target.value }) as any,
+                  )
+                }
+                data-ocid="admin.loja.textarea"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Imagem Adicional 2 (URL)</Label>
+                <Input
+                  placeholder="https://..."
+                  value={(form as any).imageUrl2 ?? ""}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, imageUrl2: e.target.value }) as any)
+                  }
+                  data-ocid="admin.loja.input"
+                />
+              </div>
+              <div>
+                <Label>Imagem Adicional 3 (URL)</Label>
+                <Input
+                  placeholder="https://..."
+                  value={(form as any).imageUrl3 ?? ""}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, imageUrl3: e.target.value }) as any)
+                  }
+                  data-ocid="admin.loja.input"
+                />
+              </div>
+            </div>
+            <div>
+              <Label>Tipo de Produto</Label>
+              <Select
+                value={(form as any).productType ?? "direto"}
+                onValueChange={(v) =>
+                  setForm((f) => ({ ...f, productType: v }) as any)
+                }
+              >
+                <SelectTrigger data-ocid="admin.loja.select">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="direto">
+                    Venda Direta (Gateway de Pagamento)
+                  </SelectItem>
+                  <SelectItem value="parceiro">
+                    Produto Parceiro (Redirecionamento Externo)
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>
+                {(form as any).productType === "parceiro"
+                  ? "Link de Redirecionamento (Parceiro)"
+                  : "Link do Gateway de Pagamento"}
+              </Label>
               <Input
+                placeholder="https://..."
                 value={form.paymentLink ?? ""}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, paymentLink: e.target.value }))
                 }
                 data-ocid="admin.loja.input"
+              />
+            </div>
+            <div>
+              <Label>Avaliação (1-5 estrelas)</Label>
+              <Input
+                type="number"
+                min={1}
+                max={5}
+                step={0.1}
+                placeholder="Ex: 4.5"
+                value={(form as any).rating ?? ""}
+                onChange={(e) =>
+                  setForm(
+                    (f) =>
+                      ({
+                        ...f,
+                        rating: Number.parseFloat(e.target.value) || 0,
+                      }) as any,
+                  )
+                }
+                data-ocid="admin.loja.input"
+              />
+            </div>
+            <div>
+              <Label>O que está incluído (um item por linha)</Label>
+              <Textarea
+                placeholder="Acesso imediato ao material&#10;Suporte por 30 dias&#10;Certificado de conclusão"
+                value={(form as any).includes ?? ""}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, includes: e.target.value }) as any)
+                }
+                data-ocid="admin.loja.textarea"
               />
             </div>
             <div className="flex items-center gap-2">
