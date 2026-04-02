@@ -242,6 +242,77 @@ export default function Avaliador({ onRequestFullReport }: AvaliadorProps) {
     setFileName(file.name);
   };
 
+  const buildRelatorioSimples = (
+    ev: CVResult,
+    nomeCandidate: string,
+  ): string => {
+    const competenciasList = ev.competencies
+      .map((c) => `<li style="margin-bottom:4px;">${c}</li>`)
+      .join("");
+    const melhoriasList = ev.improvements
+      .map(
+        (m, i) =>
+          `<li style="margin-bottom:6px;"><strong>${i + 1}.</strong> ${m}</li>`,
+      )
+      .join("");
+    const linkedinList = ev.linkedinTips
+      .map((t) => `<li style="margin-bottom:4px;">${t}</li>`)
+      .join("");
+    return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<title>Relatório BDS Avaliador de Currículo</title>
+</head>
+<body style="font-family:Arial,sans-serif;max-width:800px;margin:0 auto;padding:24px;color:#1a1a1a;">
+  <header style="background:#1a1a1a;color:#fff;padding:20px 24px;border-radius:8px;margin-bottom:24px;">
+    <h1 style="margin:0;font-size:22px;letter-spacing:1px;">
+      <span style="color:#fff;">B</span><span style="color:#d7350d;">D</span><span style="color:#fff;">S</span>
+      <span style="color:#fff;"> AVALIADOR DE CURRÍCULO</span>
+    </h1>
+    <p style="margin:6px 0 0;font-size:13px;opacity:0.75;">Relatório de Avaliação — ${nomeCandidate}</p>
+  </header>
+
+  <section style="background:#f8f8f8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+    <h2 style="font-size:16px;margin:0 0 14px;color:#d7350d;">Pontuações</h2>
+    <div style="display:flex;gap:32px;flex-wrap:wrap;">
+      <div style="text-align:center;">
+        <div style="font-size:36px;font-weight:900;color:#22c55e;">${ev.overallScore}</div>
+        <div style="font-size:12px;color:#666;">Score Geral</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:36px;font-weight:900;color:#3b82f6;">${ev.atsScore}</div>
+        <div style="font-size:12px;color:#666;">Score ATS</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:36px;font-weight:900;color:#f59e0b;">${ev.acceptanceRate}%</div>
+        <div style="font-size:12px;color:#666;">Taxa de Aceitação</div>
+      </div>
+    </div>
+  </section>
+
+  <section style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:20px;margin-bottom:20px;">
+    <h2 style="font-size:16px;margin:0 0 12px;color:#16a34a;">Competências Identificadas</h2>
+    <ul style="margin:0;padding-left:18px;">${competenciasList}</ul>
+  </section>
+
+  <section style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:20px;margin-bottom:20px;">
+    <h2 style="font-size:16px;margin:0 0 12px;color:#ea580c;">Sugestões de Melhoria</h2>
+    <ol style="margin:0;padding-left:18px;">${melhoriasList}</ol>
+  </section>
+
+  <section style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:20px;margin-bottom:20px;">
+    <h2 style="font-size:16px;margin:0 0 12px;color:#2563eb;">Análise LinkedIn</h2>
+    <ul style="margin:0;padding-left:18px;">${linkedinList}</ul>
+  </section>
+
+  <footer style="border-top:1px solid #e0e0e0;padding-top:16px;text-align:center;font-size:11px;color:#999;">
+    Dados mantidos por 90 dias conforme LGPD — BomDiaSegunda.com.br
+  </footer>
+</body>
+</html>`;
+  };
+
   const handleEvaluate = async () => {
     if (!canSubmit) return;
     setLoading(true);
@@ -249,13 +320,45 @@ export default function Avaliador({ onRequestFullReport }: AvaliadorProps) {
     const evaluated = simulateEvaluation(`${fileName} ${jobDesc}`, jobDesc);
     setResult(evaluated);
 
-    const newId = crypto.randomUUID();
-    setResumeId(newId);
+    const relatorioSimples = buildRelatorioSimples(evaluated, nome);
 
     try {
       if (actor) {
+        // Duplicate check: filter already-loaded resumes by email
+        let existingId: string | null = null;
+        try {
+          const all = await actor.getAllResumes();
+          const existing = all.find((r) => {
+            const rAny = r as unknown as Record<string, unknown>;
+            return (
+              typeof rAny.email === "string" &&
+              rAny.email.toLowerCase() === email.toLowerCase()
+            );
+          });
+          if (existing) {
+            existingId = existing.id;
+            toast.info(
+              "Cadastro já existente para este e-mail. Avaliação atualizada.",
+            );
+          }
+        } catch {
+          // non-blocking
+        }
+
+        const saveId = existingId ?? crypto.randomUUID();
+        setResumeId(saveId);
+
+        const crmExtras: Record<string, unknown> = {
+          nome,
+          email,
+          whatsapp,
+          status: "ativo",
+          relatorioSimples,
+          compraRelatorio: false,
+          relatorioCompleto: "",
+        };
         await actor.saveResume({
-          id: newId,
+          id: saveId,
           overallScore: BigInt(evaluated.overallScore),
           atsScore: BigInt(evaluated.atsScore),
           acceptanceRate: BigInt(evaluated.acceptanceRate),
@@ -270,7 +373,10 @@ export default function Avaliador({ onRequestFullReport }: AvaliadorProps) {
           createdAt: BigInt(Date.now()),
           reportRequested: false,
           pdfGenerated: false,
-        });
+          ...crmExtras,
+        } as Parameters<typeof actor.saveResume>[0]);
+      } else {
+        setResumeId(crypto.randomUUID());
       }
     } catch (_err) {
       // backend save failure is non-blocking

@@ -14,7 +14,6 @@ const ebooks = [
   "Algumas coisas que você precisa saber antes de enfrentar todos os desafios do mercado de trabalho",
   "Minha melhor receita de currículo",
   "Quem tem medo da entrevista?",
-  "Você pode ser empregado ou gerar empregos: empreendedorismo e os seus desafios",
 ];
 
 const fullBenefits = [
@@ -32,7 +31,7 @@ const offerIncludes = [
   "Otimização do perfil LinkedIn",
   "Simulação real de entrevista",
   "Grupo WhatsApp exclusivo por 30 dias",
-  "4 E-books gratuitos",
+  "3 E-books gratuitos",
   "Material de apoio exclusivo",
   "Acesso à comunidade de alunos",
 ];
@@ -62,7 +61,7 @@ const testimonials = [
   {
     name: "Matheus Oliveira",
     city: "Angra dos Reis",
-    text: "Nunca pensei que empreender pudesse ser uma saída para mim também. O e-book sobre empreendedorismo abriu minha cabeça. Hoje tenho meu próprio negócio!",
+    text: "O e-book Minha Melhor Receita de Currículo me ajudou a reformular tudo do zero. Depois da mentoria, fui chamado para entrevistas em menos de duas semanas!",
     initials: "MO",
     color: "bg-purple-500",
   },
@@ -170,7 +169,7 @@ export default function MentoriaInscricao({
           {/* Ebooks */}
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
             <h3 className="text-lg font-bold mb-4 text-[#1a1a1a]">
-              📚 4 E-Books Gratuitos Inclusos
+              📚 3 E-Books Gratuitos Inclusos
             </h3>
             <div className="space-y-3">
               {ebooks.map((eb, i) => (

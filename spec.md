@@ -1,30 +1,37 @@
-# Bom Dia Segunda
+# Bom Dia Segunda — CRM de Clientes da Loja
 
 ## Current State
-Aplicação one-page com Header, Vagas, Estatísticas, Avaliador, Loja, Blog, Depoimentos, Mentoria, Contato e Footer. O botão "Publicar Vaga" existe no Header mas não tem ação configurada (não abre nenhuma página/formulário).
+
+O CMS já possui:
+- Aba "Currículos" transformada em CRM completo com campos: nome, email, whatsapp, status (ativo/enviado/cancelado/excluído), relatórios HTML, proteção contra duplicidade por email
+- Aba "Loja" com gestão de produtos (CRUD, habilitar/desabilitar, páginas de venda)
+- Interface `Resume` com campos CRM já adicionados
+- Sem nenhum cadastro de clientes compradores da loja
 
 ## Requested Changes (Diff)
 
 ### Add
-- Novo componente `PublicarVaga.tsx`: página/modal de formulário ativada pelo botão "Publicar Vaga" no Header
-- Formulário em duas seções:
-  1. **Dados da Empresa** (salvos em localStorage para reutilização futura): Razão Social, CNPJ, Endereço Completo, Telefone de Contato, Responsável pela Vaga, WhatsApp do Responsável
-  2. **Informações da Vaga** (sempre preenchidas novamente): Título do Cargo, Tipo de Contratação (Efetiva/Temporária/Estágio/Menor Aprendiz/Remota/PCD), Cidade, Faixa Salarial, Descrição Detalhada do Cargo, Requisitos, Prazo de Inscrição
-- Checkbox de autorização LGPD obrigatório: "Autorizo o uso dos dados fornecidos para divulgação da vaga na plataforma Bom Dia Segunda, conforme a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018)."
-- Ao carregar o formulário, se houver dados de empresa no localStorage, eles são preenchidos automaticamente com banner informativo "Dados da empresa carregados do seu último cadastro"
-- Botão "Limpar dados da empresa" para apagar os dados salvos
-- Após envio bem-sucedido: mensagem de confirmação com aviso de que a vaga será revisada antes da publicação
-- Dados de vagas enviadas armazenados no backend (Motoko)
+- Nova interface `ShoppingCustomer` no `backend.d.ts` com: id, nome, email, whatsapp, telefone, cpf, endereco (logradouro, numero, complemento, bairro, cidade, estado, cep), produtoId, produtoNome, valorCompra, status, dataPedido, createdAt
+- Nova sub-aba "Clientes" dentro da aba Loja do AdminPanel (ou nova aba "CRM Clientes" no sidebar)
+- CRM de clientes com: contadores (Total, Pedidos Ativos, Concluídos, Cancelados), busca por nome/email/CPF, filtro por status
+- Tabela com: Nome, E-mail, WhatsApp/Telefone, CPF, Produto, Valor, Status, Data
+- Botões por linha: Concluído (verde), Cancelado (laranja), Excluir (vermelho) — excluir mantém registro sem dados de pagamento
+- Modal de detalhes com endereço completo, produto comprado e histórico
+- Aproveitamento dos dados do CRM de currículos: na tela de clientes, se o email já existir em Resume, exibir badge "Já avaliou currículo" com link para o registro
+- Botão no modal de detalhes do cliente para "Ver currículo" se o candidato existir no CRM de currículos
+- Proteção contra duplicidade: mesmo email + mesmo produto = não permite duplo cadastro
+- Novos métodos no `backendInterface`: saveShoppingCustomer, getAllShoppingCustomers, updateShoppingCustomerStatus, deleteShoppingCustomerData
 
 ### Modify
-- `Header.tsx`: botão "Publicar Vaga" passa a abrir a página PublicarVaga via hash `#publicar-vaga` ou state
-- `App.tsx`: roteamento para exibir PublicarVaga quando o hash/state indicar
+- `LojaTab` no AdminPanel: adicionar sub-tabs (duas abas internas: "Produtos" e "Clientes")
+- Sidebar SIDEBAR_ITEMS: manter "Loja" mas a aba agora tem sub-navegação interna
 
 ### Remove
 - Nada removido
 
 ## Implementation Plan
-1. Criar `PublicarVaga.tsx` com formulário completo em duas seções, localStorage para dados de empresa, LGPD checkbox, validação de campos obrigatórios e feedback de envio
-2. Atualizar `Header.tsx` para que o botão "Publicar Vaga" navegue para `#publicar-vaga`
-3. Atualizar `App.tsx` para escutar o hash `#publicar-vaga` e exibir o componente PublicarVaga em tela cheia (como AdminPanel)
-4. Armazenar vagas submetidas via backend actor (addVagaSubmissao)
+
+1. Adicionar interface `ShoppingCustomer` no `backend.d.ts` + novos métodos no `backendInterface`
+2. Modificar `LojaTab` para ter dois sub-tabs: "Produtos" (existente, inalterado) e "Clientes" (novo CRM)
+3. Implementar `ClientesCRMTab` como componente interno ao `LojaTab`
+4. Lógica de aproveitamento de dados: verificar se email do cliente existe no Resume CRM e exibir badge

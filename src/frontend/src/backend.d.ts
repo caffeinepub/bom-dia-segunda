@@ -74,6 +74,14 @@ export interface Resume {
     competencies: Array<string>;
     linkedinUrl: string;
     pdfGenerated: boolean;
+    // CRM fields
+    nome: string;
+    email: string;
+    whatsapp: string;
+    status: string;
+    relatorioSimples: string;
+    compraRelatorio: boolean;
+    relatorioCompleto: string;
 }
 export interface UserProfile {
     name: string;
@@ -86,6 +94,27 @@ export interface Testimonial {
     text: string;
     profession: string;
     approved: boolean;
+}
+export interface ShoppingCustomer {
+    id: string;
+    nome: string;
+    email: string;
+    whatsapp: string;
+    telefone: string;
+    cpf: string;
+    logradouro: string;
+    numero: string;
+    complemento: string;
+    bairro: string;
+    cidade: string;
+    estado: string;
+    cep: string;
+    produtoId: string;
+    produtoNome: string;
+    valorCompra: number;
+    status: string; // "ativo" | "concluido" | "cancelado" | "excluido"
+    dataPedido: string;
+    createdAt: bigint;
 }
 export enum UserRole {
     admin = "admin",
@@ -132,4 +161,14 @@ export interface backendInterface {
     updateJobSource(source: JobSource): Promise<void>;
     updateProduct(product: Product): Promise<void>;
     updateResumeReportStatus(resumeId: string, pdfGenerated: boolean): Promise<void>;
+    // CRM methods (frontend-simulated)
+    updateResumeStatus(resumeId: string, status: string): Promise<void>;
+    updateResumeCompra(resumeId: string, compraRelatorio: boolean): Promise<void>;
+    deleteResumeData(resumeId: string): Promise<void>;
+    getResumeByEmail(email: string): Promise<Resume | null>;
+    // Shopping CRM methods
+    saveShoppingCustomer(customer: ShoppingCustomer): Promise<void>;
+    getAllShoppingCustomers(): Promise<Array<ShoppingCustomer>>;
+    updateShoppingCustomerStatus(customerId: string, status: string): Promise<void>;
+    deleteShoppingCustomerData(customerId: string): Promise<void>;
 }

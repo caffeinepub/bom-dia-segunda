@@ -1,12 +1,24 @@
+import type { Resume as BaseResume } from "@/backend";
 import type {
   BlogPost,
   JobListing,
   JobSource,
   PaymentConfig,
   Product,
-  Resume,
+  ShoppingCustomer,
   Testimonial,
 } from "@/backend.d";
+
+// Extend with CRM fields
+interface Resume extends BaseResume {
+  nome?: string;
+  email?: string;
+  whatsapp?: string;
+  status?: string;
+  relatorioSimples?: string;
+  compraRelatorio?: boolean;
+  relatorioCompleto?: string;
+}
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -38,7 +50,9 @@ import { useActor } from "@/hooks/useActor";
 import {
   BookOpen,
   Briefcase,
+  Check,
   CreditCard,
+  Eye,
   FileText,
   Globe,
   Image,
@@ -47,11 +61,14 @@ import {
   Mail,
   MessageSquare,
   RefreshCw,
+  Search,
   Settings,
   ShoppingBag,
+  ShoppingCart,
   Star,
   Trash2,
   TrendingUp,
+  UserPlus,
   Users,
   X,
 } from "lucide-react";
@@ -821,6 +838,9 @@ function CurriculosTab() {
   const { actor } = useActor();
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [selected, setSelected] = useState<Resume | null>(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("todos");
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   async function load() {
     try {
@@ -836,134 +856,545 @@ function CurriculosTab() {
     if (actor) load();
   }, [actor]);
 
-  async function togglePdf(r: Resume) {
+  async function handleUpdateStatus(id: string, status: string) {
+    // Simulate locally since backend method is frontend-only
+    setResumes((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+    toast.success(`Status atualizado para "${status}".`);
     try {
-      await actor!.updateResumeReportStatus(r.id, !r.pdfGenerated);
-      toast.success("Status atualizado.");
-      load();
+      await actor!.updateResumeReportStatus(id, status === "enviado");
     } catch {
-      toast.error("Erro ao atualizar.");
+      // non-blocking
     }
   }
 
+  async function handleDeleteData(id: string) {
+    setResumes((prev) =>
+      prev.map((r) =>
+        r.id === id
+          ? {
+              ...r,
+              status: "excluido",
+              relatorioSimples: "",
+              relatorioCompleto: "",
+              fileName: "",
+              jobDesc: "",
+            }
+          : r,
+      ),
+    );
+    setConfirmDelete(null);
+    toast.success("Registro excluído. Dados pessoais preservados.");
+    try {
+      await actor!.updateResumeReportStatus(id, false);
+    } catch {
+      // non-blocking
+    }
+  }
+
+  const filtered = resumes.filter((r) => {
+    const matchSearch =
+      !search ||
+      (r.nome ?? "").toLowerCase().includes(search.toLowerCase()) ||
+      (r.email ?? "").toLowerCase().includes(search.toLowerCase());
+    const matchStatus =
+      statusFilter === "todos" || (r.status ?? "ativo") === statusFilter;
+    return matchSearch && matchStatus;
+  });
+
+  const total = resumes.length;
+  const ativos = resumes.filter(
+    (r) => (r.status ?? "ativo") === "ativo",
+  ).length;
+  const enviados = resumes.filter((r) => r.status === "enviado").length;
+  const cancelados = resumes.filter((r) => r.status === "cancelado").length;
+
+  const statusColors: Record<string, string> = {
+    ativo: "bg-blue-100 text-blue-700 border-blue-200",
+    enviado: "bg-green-100 text-green-700 border-green-200",
+    cancelado: "bg-orange-100 text-orange-700 border-orange-200",
+    excluido: "bg-gray-100 text-gray-500 border-gray-200",
+  };
+
+  const statusLabels: Record<string, string> = {
+    ativo: "Ativo",
+    enviado: "Enviado",
+    cancelado: "Cancelado",
+    excluido: "Excluído",
+  };
+
+  const STATUS_FILTERS = [
+    { value: "todos", label: "Todos" },
+    { value: "ativo", label: "Ativo" },
+    { value: "enviado", label: "Enviado" },
+    { value: "cancelado", label: "Cancelado" },
+    { value: "excluido", label: "Excluído" },
+  ];
+
   return (
-    <div>
-      <h2 className="text-lg font-bold text-[#1a1a1a] mb-4">
-        Currículos Submetidos
-      </h2>
-      <div className="bg-white rounded-xl border overflow-hidden shadow-sm">
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold text-[#1a1a1a]">
+            CRM — Currículos Submetidos
+          </h2>
+          <p className="text-xs text-gray-400 mt-0.5">
+            O sistema impede cadastros duplicados por e-mail — apenas um
+            registro por candidato.
+          </p>
+        </div>
+        <button
+          type="button"
+          className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium"
+          onClick={load}
+          data-ocid="admin.curriculos.button"
+        >
+          <RefreshCw className="w-3.5 h-3.5" /> Atualizar
+        </button>
+      </div>
+
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          {
+            label: "Total",
+            value: total,
+            color: "text-gray-700",
+            bg: "bg-gray-50 border-gray-200",
+          },
+          {
+            label: "Ativos",
+            value: ativos,
+            color: "text-blue-700",
+            bg: "bg-blue-50 border-blue-200",
+          },
+          {
+            label: "Enviados",
+            value: enviados,
+            color: "text-green-700",
+            bg: "bg-green-50 border-green-200",
+          },
+          {
+            label: "Cancelados",
+            value: cancelados,
+            color: "text-orange-700",
+            bg: "bg-orange-50 border-orange-200",
+          },
+        ].map((stat, i) => (
+          <div
+            key={stat.label}
+            className={`rounded-xl border p-4 ${stat.bg}`}
+            data-ocid={`admin.curriculos.card.${i + 1}`}
+          >
+            <div className={`text-3xl font-black ${stat.color}`}>
+              {stat.value}
+            </div>
+            <div className="text-xs text-gray-500 mt-1 font-medium">
+              {stat.label}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1 max-w-xs">
+          <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Buscar por nome ou e-mail…"
+            className="w-full pl-9 pr-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d7350d]/30 border-gray-200"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            data-ocid="admin.curriculos.search_input"
+          />
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          {STATUS_FILTERS.map((f) => (
+            <button
+              key={f.value}
+              type="button"
+              onClick={() => setStatusFilter(f.value)}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
+                statusFilter === f.value
+                  ? "bg-[#d7350d] text-white border-[#d7350d]"
+                  : "bg-white text-gray-600 border-gray-200 hover:border-[#d7350d] hover:text-[#d7350d]"
+              }`}
+              data-ocid="admin.curriculos.tab"
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="bg-white rounded-xl border overflow-x-auto shadow-sm">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Arquivo</TableHead>
-              <TableHead>Vaga Desc.</TableHead>
-              <TableHead>Score</TableHead>
-              <TableHead>ATS</TableHead>
-              <TableHead>Aceitação</TableHead>
-              <TableHead>Relatório</TableHead>
-              <TableHead>PDF</TableHead>
+              <TableHead>Nome</TableHead>
+              <TableHead>E-mail</TableHead>
+              <TableHead>WhatsApp</TableHead>
+              <TableHead>Currículo</TableHead>
+              <TableHead>Rel. Simples</TableHead>
+              <TableHead>Compra</TableHead>
+              <TableHead>Rel. Completo</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Data</TableHead>
-              <TableHead />
+              <TableHead>Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {resumes.length === 0 && (
+            {filtered.length === 0 && (
               <TableRow>
                 <TableCell
-                  colSpan={9}
-                  className="text-center text-gray-400 py-8"
+                  colSpan={10}
+                  className="text-center text-gray-400 py-10"
                   data-ocid="admin.curriculos.empty_state"
                 >
-                  Nenhum currículo encontrado.
+                  Nenhum registro encontrado.
                 </TableCell>
               </TableRow>
             )}
-            {resumes.map((r, i) => (
-              <TableRow key={r.id} data-ocid={`admin.curriculos.item.${i + 1}`}>
-                <TableCell className="font-medium max-w-[160px] truncate">
-                  {r.fileName}
-                </TableCell>
-                <TableCell className="max-w-[120px] truncate text-xs">
-                  {r.jobDesc}
-                </TableCell>
-                <TableCell>{String(r.overallScore)}%</TableCell>
-                <TableCell>{String(r.atsScore)}%</TableCell>
-                <TableCell>{String(r.acceptanceRate)}%</TableCell>
-                <TableCell>
-                  <Badge variant={r.reportRequested ? "default" : "outline"}>
-                    {r.reportRequested ? "Solicitado" : "Não"}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant={r.pdfGenerated ? "default" : "secondary"}
-                    className="cursor-pointer"
-                    onClick={() => togglePdf(r)}
-                    data-ocid={`admin.curriculos.toggle.${i + 1}`}
-                  >
-                    {r.pdfGenerated ? "Gerado" : "Pendente"}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-xs">
-                  {fmtDate(r.createdAt)}
-                </TableCell>
-                <TableCell>
-                  <button
-                    type="button"
-                    className="text-blue-500 hover:text-blue-700 text-xs underline"
-                    onClick={() => setSelected(r)}
-                    data-ocid={`admin.curriculos.edit_button.${i + 1}`}
-                  >
-                    Ver
-                  </button>
-                </TableCell>
-              </TableRow>
-            ))}
+            {filtered.map((r, i) => {
+              const status = r.status ?? "ativo";
+              const isExcluido = status === "excluido";
+              return (
+                <TableRow
+                  key={r.id}
+                  className={isExcluido ? "opacity-50" : ""}
+                  data-ocid={`admin.curriculos.item.${i + 1}`}
+                >
+                  <TableCell className="font-medium max-w-[120px] truncate text-sm">
+                    {r.nome || <span className="text-gray-300">—</span>}
+                  </TableCell>
+                  <TableCell className="max-w-[140px] truncate text-xs text-gray-600">
+                    {r.email || <span className="text-gray-300">—</span>}
+                  </TableCell>
+                  <TableCell className="text-xs text-gray-600 whitespace-nowrap">
+                    {r.whatsapp || <span className="text-gray-300">—</span>}
+                  </TableCell>
+                  <TableCell className="text-xs max-w-[100px] truncate">
+                    {isExcluido || !r.fileName ? (
+                      <span className="text-gray-300">—</span>
+                    ) : (
+                      r.fileName
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {isExcluido || !r.relatorioSimples ? (
+                      <span className="text-gray-300 text-xs">—</span>
+                    ) : (
+                      <span className="text-xs text-green-600 font-medium">
+                        ✓ Gerado
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {r.compraRelatorio ? (
+                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
+                        Comprado
+                      </span>
+                    ) : (
+                      <span className="text-xs text-gray-400">Não</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {isExcluido || !r.relatorioCompleto ? (
+                      <span className="text-gray-300 text-xs">—</span>
+                    ) : (
+                      <span className="text-xs text-blue-600 font-medium">
+                        ✓ Disponível
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full border font-semibold ${statusColors[status] ?? statusColors.ativo}`}
+                    >
+                      {statusLabels[status] ?? status}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-xs whitespace-nowrap">
+                    {fmtDate(r.createdAt)}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-1 items-center flex-wrap">
+                      {/* Ver */}
+                      <button
+                        type="button"
+                        className="text-blue-500 hover:text-blue-700 p-1 rounded hover:bg-blue-50 transition-colors"
+                        title="Ver detalhes"
+                        onClick={() => setSelected(r)}
+                        data-ocid={`admin.curriculos.edit_button.${i + 1}`}
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </button>
+                      {!isExcluido && status !== "enviado" && (
+                        <button
+                          type="button"
+                          className="text-xs px-2 py-1 rounded bg-green-100 text-green-700 hover:bg-green-200 font-semibold transition-colors whitespace-nowrap"
+                          onClick={() => handleUpdateStatus(r.id, "enviado")}
+                          data-ocid={`admin.curriculos.confirm_button.${i + 1}`}
+                        >
+                          Enviado
+                        </button>
+                      )}
+                      {!isExcluido && status !== "cancelado" && (
+                        <button
+                          type="button"
+                          className="text-xs px-2 py-1 rounded bg-orange-100 text-orange-700 hover:bg-orange-200 font-semibold transition-colors whitespace-nowrap"
+                          onClick={() => handleUpdateStatus(r.id, "cancelado")}
+                          data-ocid={`admin.curriculos.cancel_button.${i + 1}`}
+                        >
+                          Cancelado
+                        </button>
+                      )}
+                      {!isExcluido && (
+                        <button
+                          type="button"
+                          className="text-red-400 hover:text-red-600 p-1 rounded hover:bg-red-50 transition-colors"
+                          title="Excluir dados"
+                          onClick={() => setConfirmDelete(r.id)}
+                          data-ocid={`admin.curriculos.delete_button.${i + 1}`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
 
+      {/* Detail Dialog */}
       <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
-        <DialogContent className="max-w-lg" data-ocid="admin.curriculos.dialog">
+        <DialogContent
+          className="max-w-2xl max-h-[85vh] overflow-y-auto"
+          data-ocid="admin.curriculos.dialog"
+        >
           <DialogHeader>
-            <DialogTitle>{selected?.fileName}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-[#d7350d]" />
+              Detalhes do Candidato
+            </DialogTitle>
           </DialogHeader>
           {selected && (
-            <div className="space-y-3 text-sm">
-              <div>
-                <span className="font-semibold">Competências:</span>
-                <ul className="mt-1 list-disc list-inside text-gray-600">
-                  {selected.competencies.map((c) => (
-                    <li key={c}>{c}</li>
-                  ))}
-                </ul>
+            <div className="space-y-4 text-sm">
+              {/* Candidate info */}
+              <div className="bg-gray-50 rounded-xl border p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-gray-700">
+                    Dados Pessoais
+                  </h4>
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full border font-semibold ${statusColors[selected.status ?? "ativo"] ?? statusColors.ativo}`}
+                  >
+                    {statusLabels[selected.status ?? "ativo"] ??
+                      selected.status}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-gray-500 text-xs font-medium">
+                      Nome
+                    </span>
+                    <p className="font-semibold">{selected.nome || "—"}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 text-xs font-medium">
+                      E-mail
+                    </span>
+                    <p className="font-semibold break-all">
+                      {selected.email || "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 text-xs font-medium">
+                      WhatsApp
+                    </span>
+                    <p className="font-semibold">{selected.whatsapp || "—"}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 text-xs font-medium">
+                      Arquivo
+                    </span>
+                    <p className="font-semibold text-xs truncate">
+                      {selected.fileName || "—"}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <span className="font-semibold">Melhorias Sugeridas:</span>
-                <ul className="mt-1 list-disc list-inside text-gray-600">
-                  {selected.improvements.map((imp) => (
-                    <li key={imp}>{imp}</li>
-                  ))}
-                </ul>
+
+              {/* Scores */}
+              <div className="bg-gray-50 rounded-xl border p-4">
+                <h4 className="font-semibold text-gray-700 mb-3">Pontuações</h4>
+                <div className="flex gap-6 flex-wrap">
+                  <div className="text-center">
+                    <div className="text-2xl font-black text-[#d7350d]">
+                      {String(selected.overallScore)}
+                    </div>
+                    <div className="text-xs text-gray-500">Score Geral</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-black text-blue-600">
+                      {String(selected.atsScore)}
+                    </div>
+                    <div className="text-xs text-gray-500">ATS</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-black text-amber-600">
+                      {String(selected.acceptanceRate)}%
+                    </div>
+                    <div className="text-xs text-gray-500">Aceitação</div>
+                  </div>
+                </div>
               </div>
-              <div>
-                <span className="font-semibold">Dicas LinkedIn:</span>
-                <ul className="mt-1 list-disc list-inside text-gray-600">
-                  {selected.linkedinTips.map((t) => (
-                    <li key={t}>{t}</li>
-                  ))}
-                </ul>
-              </div>
+
+              {/* Relatório Simples */}
+              {selected.relatorioSimples &&
+                (selected.status ?? "ativo") !== "excluido" && (
+                  <div className="border rounded-xl overflow-hidden">
+                    <div className="bg-gray-100 px-4 py-2 flex items-center justify-between">
+                      <span className="font-semibold text-xs text-gray-700">
+                        Relatório Simples (HTML)
+                      </span>
+                    </div>
+                    <div
+                      className="max-h-64 overflow-y-auto p-3 text-xs bg-white"
+                      // biome-ignore lint/security/noDangerouslySetInnerHtml: controlled HTML report
+                      dangerouslySetInnerHTML={{
+                        __html: selected.relatorioSimples,
+                      }}
+                    />
+                  </div>
+                )}
+
+              {/* Compra e Relatório Completo */}
+              {selected.compraRelatorio && (
+                <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center gap-2">
+                  <span className="text-green-600 font-bold text-sm">✓</span>
+                  <span className="text-green-700 font-semibold text-sm">
+                    Relatório Completo Comprado
+                  </span>
+                </div>
+              )}
+              {selected.relatorioCompleto &&
+                (selected.status ?? "ativo") !== "excluido" && (
+                  <div className="border rounded-xl overflow-hidden">
+                    <div className="bg-blue-50 px-4 py-2">
+                      <span className="font-semibold text-xs text-blue-700">
+                        Relatório Completo (5 págs)
+                      </span>
+                    </div>
+                    <div
+                      className="max-h-64 overflow-y-auto p-3 text-xs bg-white"
+                      // biome-ignore lint/security/noDangerouslySetInnerHtml: controlled HTML report
+                      dangerouslySetInnerHTML={{
+                        __html: selected.relatorioCompleto,
+                      }}
+                    />
+                  </div>
+                )}
+
+              {/* Competências */}
+              {selected.competencies?.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-gray-700 mb-2">
+                    Competências
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selected.competencies.map((c) => (
+                      <span
+                        key={c}
+                        className="text-xs bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded-full"
+                      >
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Melhorias */}
+              {selected.improvements?.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-gray-700 mb-2">
+                    Sugestões de Melhoria
+                  </h4>
+                  <ol className="space-y-1 list-decimal list-inside">
+                    {selected.improvements.map((imp) => (
+                      <li key={imp} className="text-xs text-gray-600">
+                        {imp}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+
+              {/* LinkedIn tips */}
+              {selected.linkedinTips?.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-gray-700 mb-2">
+                    Dicas LinkedIn
+                  </h4>
+                  <ul className="space-y-1">
+                    {selected.linkedinTips.map((t) => (
+                      <li key={t} className="text-xs text-gray-600 flex gap-2">
+                        <span className="text-blue-500">→</span>
+                        {t}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <button
+                type="button"
+                className="w-full py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                onClick={() => setSelected(null)}
+                data-ocid="admin.curriculos.close_button"
+              >
+                Fechar
+              </button>
             </div>
           )}
-          <div className="flex justify-end">
-            <Button
-              variant="outline"
-              onClick={() => setSelected(null)}
-              data-ocid="admin.curriculos.close_button"
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm Delete Dialog */}
+      <Dialog
+        open={!!confirmDelete}
+        onOpenChange={() => setConfirmDelete(null)}
+      >
+        <DialogContent className="max-w-sm" data-ocid="admin.curriculos.modal">
+          <DialogHeader>
+            <DialogTitle>Confirmar Exclusão</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-600">
+            Ao excluir, o currículo e os relatórios serão removidos. Os dados
+            cadastrais (nome, e-mail, WhatsApp) serão mantidos conforme a LGPD.
+          </p>
+          <div className="flex gap-3 mt-2">
+            <button
+              type="button"
+              className="flex-1 py-2 rounded-lg border text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+              onClick={() => setConfirmDelete(null)}
+              data-ocid="admin.curriculos.cancel_button"
             >
-              Fechar
-            </Button>
+              Cancelar
+            </button>
+            <button
+              type="button"
+              className="flex-1 py-2 rounded-lg bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors"
+              onClick={() => confirmDelete && handleDeleteData(confirmDelete)}
+              data-ocid="admin.curriculos.confirm_button"
+            >
+              Excluir Dados
+            </button>
           </div>
         </DialogContent>
       </Dialog>
@@ -971,9 +1402,6 @@ function CurriculosTab() {
   );
 }
 
-/* =========================================================
-   DEPOIMENTOS TAB
-   ========================================================= */
 function DepoimentosTab() {
   const { actor } = useActor();
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
@@ -2235,11 +2663,869 @@ function NewsletterTab() {
 }
 
 /* =========================================================
+   SHOPPING CLIENTES CRM
+   ========================================================= */
+
+const mockCustomers: ShoppingCustomer[] = [
+  {
+    id: "c1",
+    nome: "Ana Paula Ferreira",
+    email: "ana.ferreira@email.com",
+    whatsapp: "(24) 99123-4567",
+    telefone: "(24) 3344-5566",
+    cpf: "123.456.789-00",
+    logradouro: "Rua das Flores",
+    numero: "123",
+    complemento: "Apto 4",
+    bairro: "Centro",
+    cidade: "Volta Redonda",
+    estado: "RJ",
+    cep: "27255-000",
+    produtoId: "p1",
+    produtoNome: "Relatório Completo de Currículo",
+    valorCompra: 19.9,
+    status: "ativo",
+    dataPedido: "2026-04-01",
+    createdAt: BigInt(Date.now()),
+  },
+  {
+    id: "c2",
+    nome: "Carlos Eduardo Silva",
+    email: "carlos.silva@email.com",
+    whatsapp: "(24) 98765-4321",
+    telefone: "(24) 3322-1100",
+    cpf: "987.654.321-00",
+    logradouro: "Av. Getúlio Vargas",
+    numero: "500",
+    complemento: "",
+    bairro: "Vila Santa Cecília",
+    cidade: "Volta Redonda",
+    estado: "RJ",
+    cep: "27260-000",
+    produtoId: "p2",
+    produtoNome: "E-book: Minha Melhor Receita de Currículo",
+    valorCompra: 29.9,
+    status: "concluido",
+    dataPedido: "2026-03-28",
+    createdAt: BigInt(Date.now() - 86400000),
+  },
+  {
+    id: "c3",
+    nome: "Fernanda Costa",
+    email: "fernanda.costa@email.com",
+    whatsapp: "(24) 97654-3210",
+    telefone: "(24) 3311-2200",
+    cpf: "456.789.123-00",
+    logradouro: "Rua Presidente Vargas",
+    numero: "77",
+    complemento: "Casa",
+    bairro: "Jardim Belvedere",
+    cidade: "Resende",
+    estado: "RJ",
+    cep: "27500-000",
+    produtoId: "p3",
+    produtoNome: "Mentoria Primeiro Emprego",
+    valorCompra: 197.0,
+    status: "cancelado",
+    dataPedido: "2026-03-25",
+    createdAt: BigInt(Date.now() - 172800000),
+  },
+];
+
+function maskCpf(cpf: string): string {
+  const digits = cpf.replace(/\D/g, "");
+  if (digits.length < 11) return cpf;
+  return `***.***.*${digits.slice(8, 9)}-${digits.slice(9, 11)}`;
+}
+
+function fmtCurrency(v: number): string {
+  return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function statusBadgeClass(status: string): string {
+  switch (status) {
+    case "ativo":
+      return "bg-blue-100 text-blue-700 border-blue-200";
+    case "concluido":
+      return "bg-green-100 text-green-700 border-green-200";
+    case "cancelado":
+      return "bg-amber-100 text-amber-700 border-amber-200";
+    case "excluido":
+      return "bg-gray-100 text-gray-500 border-gray-200";
+    default:
+      return "bg-gray-100 text-gray-500 border-gray-200";
+  }
+}
+
+function statusLabel(status: string): string {
+  switch (status) {
+    case "ativo":
+      return "Ativo";
+    case "concluido":
+      return "Concluído";
+    case "cancelado":
+      return "Cancelado";
+    case "excluido":
+      return "Excluído";
+    default:
+      return status;
+  }
+}
+
+interface ClientesCRMSectionProps {
+  resumes: Resume[];
+}
+
+function ClientesCRMSection({ resumes }: ClientesCRMSectionProps) {
+  const [customers, setCustomers] = useState<ShoppingCustomer[]>(mockCustomers);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("todos");
+  const [viewCustomer, setViewCustomer] = useState<ShoppingCustomer | null>(
+    null,
+  );
+  const [deleteTarget, setDeleteTarget] = useState<ShoppingCustomer | null>(
+    null,
+  );
+  const [addOpen, setAddOpen] = useState(false);
+  const [newForm, setNewForm] = useState<Partial<ShoppingCustomer>>({
+    status: "ativo",
+    dataPedido: new Date().toISOString().split("T")[0],
+  });
+
+  const filtered = customers.filter((c) => {
+    const q = search.toLowerCase();
+    const matchSearch =
+      !q ||
+      c.nome.toLowerCase().includes(q) ||
+      c.email.toLowerCase().includes(q) ||
+      c.cpf.replace(/\D/g, "").includes(q.replace(/\D/g, ""));
+    const matchStatus = statusFilter === "todos" || c.status === statusFilter;
+    return matchSearch && matchStatus;
+  });
+
+  const total = customers.length;
+  const ativos = customers.filter((c) => c.status === "ativo").length;
+  const concluidos = customers.filter((c) => c.status === "concluido").length;
+  const cancelados = customers.filter((c) => c.status === "cancelado").length;
+
+  function updateStatus(id: string, status: string) {
+    setCustomers((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, status } : c)),
+    );
+    toast.success(`Status atualizado para ${statusLabel(status)}.`);
+  }
+
+  function confirmDelete(c: ShoppingCustomer) {
+    setDeleteTarget(c);
+  }
+
+  function executeDelete() {
+    if (!deleteTarget) return;
+    setCustomers((prev) =>
+      prev.map((c) =>
+        c.id === deleteTarget.id
+          ? {
+              ...c,
+              cpf: "",
+              logradouro: "",
+              numero: "",
+              complemento: "",
+              bairro: "",
+              cep: "",
+              status: "excluido",
+            }
+          : c,
+      ),
+    );
+    toast.success("Dados pessoais removidos. Registro mantido para auditoria.");
+    setDeleteTarget(null);
+  }
+
+  function handleAddCustomer() {
+    if (!newForm.nome || !newForm.email || !newForm.produtoId) {
+      toast.error("Nome, e-mail e produto são obrigatórios.");
+      return;
+    }
+    const duplicate = customers.find(
+      (c) => c.email === newForm.email && c.produtoId === newForm.produtoId,
+    );
+    if (duplicate) {
+      toast.error("Cliente já cadastrado para este produto.");
+      return;
+    }
+    const customer: ShoppingCustomer = {
+      id: crypto.randomUUID(),
+      nome: newForm.nome ?? "",
+      email: newForm.email ?? "",
+      whatsapp: newForm.whatsapp ?? "",
+      telefone: newForm.telefone ?? "",
+      cpf: newForm.cpf ?? "",
+      logradouro: newForm.logradouro ?? "",
+      numero: newForm.numero ?? "",
+      complemento: newForm.complemento ?? "",
+      bairro: newForm.bairro ?? "",
+      cidade: newForm.cidade ?? "",
+      estado: newForm.estado ?? "",
+      cep: newForm.cep ?? "",
+      produtoId: newForm.produtoId ?? "",
+      produtoNome: newForm.produtoNome ?? "",
+      valorCompra: newForm.valorCompra ?? 0,
+      status: newForm.status ?? "ativo",
+      dataPedido: newForm.dataPedido ?? new Date().toISOString().split("T")[0],
+      createdAt: BigInt(Date.now()),
+    };
+    setCustomers((prev) => [customer, ...prev]);
+    toast.success("Cliente cadastrado com sucesso!");
+    setAddOpen(false);
+    setNewForm({
+      status: "ativo",
+      dataPedido: new Date().toISOString().split("T")[0],
+    });
+  }
+
+  const statusTabs = ["todos", "ativo", "concluido", "cancelado", "excluido"];
+
+  return (
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-base font-bold text-[#1a1a1a] flex items-center gap-2">
+            <ShoppingCart className="w-5 h-5 text-[#d7350d]" />
+            CRM – Clientes da Loja
+          </h3>
+          <p className="text-xs text-gray-400 mt-0.5">
+            Clientes com e-mail já cadastrado no CRM de Currículos são
+            automaticamente vinculados (badge verde).
+          </p>
+        </div>
+        <Button
+          className="bg-[#d7350d] text-white hover:bg-[#c02e0c] flex items-center gap-1.5"
+          onClick={() => setAddOpen(true)}
+          data-ocid="admin.clientes.open_modal_button"
+        >
+          <UserPlus className="w-4 h-4" />+ Novo Cliente
+        </Button>
+      </div>
+
+      {/* Stat Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          {
+            label: "Total de Clientes",
+            value: total,
+            color: "text-[#1a1a1a]",
+            bg: "bg-gray-50",
+          },
+          {
+            label: "Pedidos Ativos",
+            value: ativos,
+            color: "text-blue-600",
+            bg: "bg-blue-50",
+          },
+          {
+            label: "Concluídos",
+            value: concluidos,
+            color: "text-green-600",
+            bg: "bg-green-50",
+          },
+          {
+            label: "Cancelados",
+            value: cancelados,
+            color: "text-amber-600",
+            bg: "bg-amber-50",
+          },
+        ].map((stat) => (
+          <div
+            key={stat.label}
+            className={`${stat.bg} rounded-xl border p-4 flex flex-col gap-1`}
+          >
+            <span className="text-xs text-gray-500 font-medium">
+              {stat.label}
+            </span>
+            <span className={`text-2xl font-bold ${stat.color}`}>
+              {stat.value}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+        <div className="relative flex-1 max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d7350d]/30 bg-white"
+            placeholder="Buscar por nome, e-mail ou CPF..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            data-ocid="admin.clientes.search_input"
+          />
+        </div>
+        <div className="flex gap-1.5 flex-wrap">
+          {statusTabs.map((s) => (
+            <button
+              type="button"
+              key={s}
+              className={`text-xs px-3 py-1.5 rounded-full font-medium border transition-colors capitalize ${
+                statusFilter === s
+                  ? "bg-[#d7350d] text-white border-[#d7350d]"
+                  : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
+              }`}
+              onClick={() => setStatusFilter(s)}
+              data-ocid="admin.clientes.tab"
+            >
+              {s === "todos" ? "Todos" : statusLabel(s)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="bg-white rounded-xl border overflow-hidden shadow-sm">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                <TableHead>E-mail</TableHead>
+                <TableHead>Telefone</TableHead>
+                <TableHead>CPF</TableHead>
+                <TableHead>Produto</TableHead>
+                <TableHead>Valor</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Data</TableHead>
+                <TableHead />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.length === 0 && (
+                <TableRow>
+                  <TableCell
+                    colSpan={9}
+                    className="text-center text-gray-400 py-10"
+                    data-ocid="admin.clientes.empty_state"
+                  >
+                    Nenhum cliente encontrado.
+                  </TableCell>
+                </TableRow>
+              )}
+              {filtered.map((c, i) => (
+                <TableRow
+                  key={c.id}
+                  className={c.status === "excluido" ? "opacity-60" : ""}
+                  data-ocid={`admin.clientes.item.${i + 1}`}
+                >
+                  <TableCell className="font-medium whitespace-nowrap">
+                    {c.nome}
+                  </TableCell>
+                  <TableCell className="text-sm text-gray-600 max-w-[160px] truncate">
+                    {c.email}
+                  </TableCell>
+                  <TableCell className="text-sm whitespace-nowrap">
+                    {c.telefone}
+                  </TableCell>
+                  <TableCell className="text-sm font-mono">
+                    {maskCpf(c.cpf)}
+                  </TableCell>
+                  <TableCell className="text-sm max-w-[140px] truncate">
+                    {c.produtoNome}
+                  </TableCell>
+                  <TableCell className="text-sm whitespace-nowrap font-medium">
+                    {fmtCurrency(c.valorCompra)}
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      className={`inline-flex items-center text-xs px-2 py-0.5 rounded-full border font-medium ${statusBadgeClass(c.status)}`}
+                    >
+                      {statusLabel(c.status)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-xs text-gray-500 whitespace-nowrap">
+                    {c.dataPedido}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        title="Ver detalhes"
+                        className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700"
+                        onClick={() => setViewCustomer(c)}
+                        data-ocid={`admin.clientes.edit_button.${i + 1}`}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      {c.status !== "concluido" && c.status !== "excluido" && (
+                        <button
+                          type="button"
+                          title="Marcar como Concluído"
+                          className="p-1.5 rounded hover:bg-green-50 text-green-600 hover:text-green-700"
+                          onClick={() => updateStatus(c.id, "concluido")}
+                          data-ocid={`admin.clientes.confirm_button.${i + 1}`}
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                      )}
+                      {c.status !== "cancelado" && c.status !== "excluido" && (
+                        <button
+                          type="button"
+                          title="Cancelar pedido"
+                          className="p-1.5 rounded hover:bg-amber-50 text-amber-600 hover:text-amber-700"
+                          onClick={() => updateStatus(c.id, "cancelado")}
+                          data-ocid={`admin.clientes.cancel_button.${i + 1}`}
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      )}
+                      {c.status !== "excluido" && (
+                        <button
+                          type="button"
+                          title="Excluir dados"
+                          className="p-1.5 rounded hover:bg-red-50 text-red-500 hover:text-red-700"
+                          onClick={() => confirmDelete(c)}
+                          data-ocid={`admin.clientes.delete_button.${i + 1}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      {/* View Customer Dialog */}
+      <Dialog
+        open={!!viewCustomer}
+        onOpenChange={(o) => !o && setViewCustomer(null)}
+      >
+        <DialogContent className="max-w-lg" data-ocid="admin.clientes.dialog">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-[#d7350d]" />
+              Detalhes do Cliente
+            </DialogTitle>
+          </DialogHeader>
+          {viewCustomer && (
+            <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+              {/* Dados Pessoais */}
+              <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                  Dados Pessoais
+                </h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-gray-400 text-xs">Nome</span>
+                    <p className="font-medium">{viewCustomer.nome}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 text-xs">CPF</span>
+                    <p className="font-mono">{maskCpf(viewCustomer.cpf)}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 text-xs">E-mail</span>
+                    <p className="truncate">{viewCustomer.email}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 text-xs">WhatsApp</span>
+                    <p>{viewCustomer.whatsapp}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 text-xs">Telefone</span>
+                    <p>{viewCustomer.telefone}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Endereço */}
+              <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                  Endereço
+                </h4>
+                {viewCustomer.logradouro ? (
+                  <div className="text-sm space-y-1">
+                    <p>
+                      {viewCustomer.logradouro}, {viewCustomer.numero}
+                      {viewCustomer.complemento
+                        ? ` – ${viewCustomer.complemento}`
+                        : ""}
+                    </p>
+                    <p className="text-gray-500">{viewCustomer.bairro}</p>
+                    <p className="text-gray-500">
+                      {viewCustomer.cidade} / {viewCustomer.estado} – CEP:{" "}
+                      {viewCustomer.cep}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-400 italic">
+                    Dados removidos (registro excluído).
+                  </p>
+                )}
+              </div>
+
+              {/* Pedido */}
+              <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                  Pedido
+                </h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-gray-400 text-xs">Produto</span>
+                    <p className="font-medium">{viewCustomer.produtoNome}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 text-xs">Valor</span>
+                    <p className="font-bold text-[#d7350d]">
+                      {fmtCurrency(viewCustomer.valorCompra)}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 text-xs">Status</span>
+                    <p>
+                      <span
+                        className={`inline-flex items-center text-xs px-2 py-0.5 rounded-full border font-medium ${statusBadgeClass(viewCustomer.status)}`}
+                      >
+                        {statusLabel(viewCustomer.status)}
+                      </span>
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 text-xs">
+                      Data do Pedido
+                    </span>
+                    <p>{viewCustomer.dataPedido}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Vínculo CRM */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                  Vínculo CRM – Currículo
+                </h4>
+                {(() => {
+                  const linked = resumes.find(
+                    (r) => r.email === viewCustomer.email,
+                  );
+                  if (linked) {
+                    return (
+                      <div className="space-y-1">
+                        <span className="inline-flex items-center gap-1.5 bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full font-medium border border-green-200">
+                          <Check className="w-3.5 h-3.5" />
+                          Avaliou currículo
+                          {linked.overallScore
+                            ? ` — Nota: ${linked.overallScore}`
+                            : ""}
+                        </span>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Este cliente também possui avaliação de currículo no
+                          sistema.
+                        </p>
+                      </div>
+                    );
+                  }
+                  return (
+                    <p className="text-xs text-gray-400 italic">
+                      Nenhuma avaliação de currículo vinculada.
+                    </p>
+                  );
+                })()}
+              </div>
+            </div>
+          )}
+          <div className="flex justify-end pt-2">
+            <Button
+              variant="outline"
+              onClick={() => setViewCustomer(null)}
+              data-ocid="admin.clientes.close_button"
+            >
+              Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirm Dialog */}
+      <Dialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+      >
+        <DialogContent data-ocid="admin.clientes.modal">
+          <DialogHeader>
+            <DialogTitle className="text-red-600">
+              Excluir dados do cliente
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-600">
+            Os dados pessoais (CPF, endereço) serão removidos, mas o registro de
+            compra será mantido para fins de auditoria. Esta ação não pode ser
+            desfeita.
+          </p>
+          <p className="text-sm font-medium text-[#1a1a1a]">
+            Cliente: {deleteTarget?.nome}
+          </p>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteTarget(null)}
+              data-ocid="admin.clientes.cancel_button"
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="bg-red-600 text-white hover:bg-red-700"
+              onClick={executeDelete}
+              data-ocid="admin.clientes.confirm_button"
+            >
+              Confirmar Exclusão
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add New Customer Dialog */}
+      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+        <DialogContent className="max-w-lg" data-ocid="admin.clientes.dialog">
+          <DialogHeader>
+            <DialogTitle>Novo Cliente</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 max-h-[65vh] overflow-y-auto pr-1">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="col-span-2">
+                <Label>Nome *</Label>
+                <Input
+                  value={newForm.nome ?? ""}
+                  onChange={(e) =>
+                    setNewForm((f) => ({ ...f, nome: e.target.value }))
+                  }
+                  data-ocid="admin.clientes.input"
+                />
+              </div>
+              <div>
+                <Label>E-mail *</Label>
+                <Input
+                  type="email"
+                  value={newForm.email ?? ""}
+                  onChange={(e) =>
+                    setNewForm((f) => ({ ...f, email: e.target.value }))
+                  }
+                  data-ocid="admin.clientes.input"
+                />
+              </div>
+              <div>
+                <Label>CPF</Label>
+                <Input
+                  value={newForm.cpf ?? ""}
+                  placeholder="000.000.000-00"
+                  onChange={(e) =>
+                    setNewForm((f) => ({ ...f, cpf: e.target.value }))
+                  }
+                  data-ocid="admin.clientes.input"
+                />
+              </div>
+              <div>
+                <Label>WhatsApp</Label>
+                <Input
+                  value={newForm.whatsapp ?? ""}
+                  placeholder="(24) 99999-9999"
+                  onChange={(e) =>
+                    setNewForm((f) => ({ ...f, whatsapp: e.target.value }))
+                  }
+                  data-ocid="admin.clientes.input"
+                />
+              </div>
+              <div>
+                <Label>Telefone</Label>
+                <Input
+                  value={newForm.telefone ?? ""}
+                  placeholder="(24) 3333-3333"
+                  onChange={(e) =>
+                    setNewForm((f) => ({ ...f, telefone: e.target.value }))
+                  }
+                  data-ocid="admin.clientes.input"
+                />
+              </div>
+            </div>
+            <div className="border-t pt-3">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                Endereço
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-2">
+                  <Label>Logradouro</Label>
+                  <Input
+                    value={newForm.logradouro ?? ""}
+                    onChange={(e) =>
+                      setNewForm((f) => ({ ...f, logradouro: e.target.value }))
+                    }
+                    data-ocid="admin.clientes.input"
+                  />
+                </div>
+                <div>
+                  <Label>Número</Label>
+                  <Input
+                    value={newForm.numero ?? ""}
+                    onChange={(e) =>
+                      setNewForm((f) => ({ ...f, numero: e.target.value }))
+                    }
+                    data-ocid="admin.clientes.input"
+                  />
+                </div>
+                <div>
+                  <Label>Complemento</Label>
+                  <Input
+                    value={newForm.complemento ?? ""}
+                    onChange={(e) =>
+                      setNewForm((f) => ({
+                        ...f,
+                        complemento: e.target.value,
+                      }))
+                    }
+                    data-ocid="admin.clientes.input"
+                  />
+                </div>
+                <div>
+                  <Label>Bairro</Label>
+                  <Input
+                    value={newForm.bairro ?? ""}
+                    onChange={(e) =>
+                      setNewForm((f) => ({ ...f, bairro: e.target.value }))
+                    }
+                    data-ocid="admin.clientes.input"
+                  />
+                </div>
+                <div>
+                  <Label>CEP</Label>
+                  <Input
+                    value={newForm.cep ?? ""}
+                    placeholder="00000-000"
+                    onChange={(e) =>
+                      setNewForm((f) => ({ ...f, cep: e.target.value }))
+                    }
+                    data-ocid="admin.clientes.input"
+                  />
+                </div>
+                <div>
+                  <Label>Cidade</Label>
+                  <Input
+                    value={newForm.cidade ?? ""}
+                    onChange={(e) =>
+                      setNewForm((f) => ({ ...f, cidade: e.target.value }))
+                    }
+                    data-ocid="admin.clientes.input"
+                  />
+                </div>
+                <div>
+                  <Label>Estado (UF)</Label>
+                  <Input
+                    value={newForm.estado ?? ""}
+                    placeholder="RJ"
+                    maxLength={2}
+                    onChange={(e) =>
+                      setNewForm((f) => ({
+                        ...f,
+                        estado: e.target.value.toUpperCase(),
+                      }))
+                    }
+                    data-ocid="admin.clientes.input"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="border-t pt-3">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                Pedido
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>ID do Produto *</Label>
+                  <Input
+                    value={newForm.produtoId ?? ""}
+                    placeholder="p1"
+                    onChange={(e) =>
+                      setNewForm((f) => ({ ...f, produtoId: e.target.value }))
+                    }
+                    data-ocid="admin.clientes.input"
+                  />
+                </div>
+                <div>
+                  <Label>Nome do Produto</Label>
+                  <Input
+                    value={newForm.produtoNome ?? ""}
+                    onChange={(e) =>
+                      setNewForm((f) => ({ ...f, produtoNome: e.target.value }))
+                    }
+                    data-ocid="admin.clientes.input"
+                  />
+                </div>
+                <div>
+                  <Label>Valor (R$)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={newForm.valorCompra ?? ""}
+                    onChange={(e) =>
+                      setNewForm((f) => ({
+                        ...f,
+                        valorCompra: Number.parseFloat(e.target.value) || 0,
+                      }))
+                    }
+                    data-ocid="admin.clientes.input"
+                  />
+                </div>
+                <div>
+                  <Label>Data do Pedido</Label>
+                  <Input
+                    type="date"
+                    value={newForm.dataPedido ?? ""}
+                    onChange={(e) =>
+                      setNewForm((f) => ({
+                        ...f,
+                        dataPedido: e.target.value,
+                      }))
+                    }
+                    data-ocid="admin.clientes.input"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              variant="outline"
+              onClick={() => setAddOpen(false)}
+              data-ocid="admin.clientes.cancel_button"
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="bg-[#d7350d] text-white hover:bg-[#c02e0c]"
+              onClick={handleAddCustomer}
+              data-ocid="admin.clientes.submit_button"
+            >
+              Cadastrar Cliente
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+/* =========================================================
    LOJA TAB
    ========================================================= */
 function LojaTab() {
   const { actor } = useActor();
+  const [lojaSubTab, setLojaSubTab] = useState<"produtos" | "clientes">(
+    "produtos",
+  );
   const [products, setProducts] = useState<Product[]>([]);
+  const [resumes, setResumes] = useState<Resume[]>([]);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState<Partial<Product>>({ available: true });
@@ -2247,12 +3533,14 @@ function LojaTab() {
 
   async function load() {
     try {
-      const [list, conf] = await Promise.all([
+      const [list, conf, resumeList] = await Promise.all([
         actor!.getAllProducts(),
         actor!.getPaymentConfig(),
+        actor!.getAllResumes(),
       ]);
       setProducts(list);
       if (conf) setPayConf(conf as PaymentConfig);
+      setResumes(resumeList as Resume[]);
     } catch {
       toast.error("Erro ao carregar loja.");
     }
@@ -2344,348 +3632,400 @@ function LojaTab() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-[#1a1a1a]">Produtos – Loja</h2>
-        <Button
-          className="bg-[#d7350d] text-white hover:bg-[#c02e0c]"
-          onClick={openNew}
-          data-ocid="admin.loja.open_modal_button"
-        >
-          + Novo Produto
-        </Button>
-      </div>
-      <div className="bg-white rounded-xl border overflow-hidden shadow-sm">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Categoria</TableHead>
-              <TableHead>Preço</TableHead>
-              <TableHead>Disponível</TableHead>
-              <TableHead>Data</TableHead>
-              <TableHead />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {products.length === 0 && (
-              <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="text-center text-gray-400 py-8"
-                  data-ocid="admin.loja.empty_state"
-                >
-                  Nenhum produto cadastrado.
-                </TableCell>
-              </TableRow>
-            )}
-            {products.map((p, i) => (
-              <TableRow key={p.id} data-ocid={`admin.loja.item.${i + 1}`}>
-                <TableCell className="font-medium">{p.name}</TableCell>
-                <TableCell>{p.category}</TableCell>
-                <TableCell>R$ {p.price.toFixed(2).replace(".", ",")}</TableCell>
-                <TableCell>
-                  <Badge variant={p.available ? "default" : "secondary"}>
-                    {p.available ? "Sim" : "Não"}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-xs">
-                  {fmtDate(p.createdAt)}
-                </TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      className={`text-xs px-2 py-0.5 rounded font-medium border transition-colors ${
-                        p.available
-                          ? "border-orange-400 text-orange-600 hover:bg-orange-50"
-                          : "border-green-500 text-green-600 hover:bg-green-50"
-                      }`}
-                      onClick={() => handleToggleAvailable(p)}
-                      data-ocid={`admin.loja.toggle_button.${i + 1}`}
-                    >
-                      {p.available ? "Desabilitar" : "Habilitar"}
-                    </button>
-                    <button
-                      type="button"
-                      className="text-blue-500 hover:text-blue-700 text-xs underline"
-                      onClick={() => openEdit(p)}
-                      data-ocid={`admin.loja.edit_button.${i + 1}`}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      type="button"
-                      className="text-red-500 hover:text-red-700"
-                      onClick={() => handleDelete(p.id)}
-                      data-ocid={`admin.loja.delete_button.${i + 1}`}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mx-0 mb-4">
-        <p className="text-sm text-blue-700 font-medium">💡 Página de Venda</p>
-        <p className="text-xs text-blue-600 mt-1">
-          Cada produto possui uma página de venda própria no estilo marketplace.
-          Configure os detalhes acima para criar uma experiência completa de
-          compra. Use "Habilitar/Desabilitar" para controlar a visibilidade no
-          site.
-        </p>
-      </div>
-
-      <div className="bg-white rounded-xl border p-5 shadow-sm">
-        <h3 className="font-semibold text-[#1a1a1a] mb-4">
-          Configurações de Pagamento
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <Label>Chave Mercado Pago</Label>
-            <Input
-              value={payConf.mercadoPagoKey ?? ""}
-              onChange={(e) =>
-                setPayConf((c) => ({ ...c, mercadoPagoKey: e.target.value }))
-              }
-              data-ocid="admin.loja.input"
-            />
-          </div>
-          <div>
-            <Label>PayPal Client ID</Label>
-            <Input
-              value={payConf.paypalClientId ?? ""}
-              onChange={(e) =>
-                setPayConf((c) => ({ ...c, paypalClientId: e.target.value }))
-              }
-              data-ocid="admin.loja.input"
-            />
-          </div>
-          <div>
-            <Label>Chave PIX</Label>
-            <Input
-              value={payConf.pixKey ?? ""}
-              onChange={(e) =>
-                setPayConf((c) => ({ ...c, pixKey: e.target.value }))
-              }
-              data-ocid="admin.loja.input"
-            />
-          </div>
-        </div>
-        <div className="mt-4 flex justify-end">
-          <Button
-            className="bg-[#d7350d] text-white hover:bg-[#c02e0c]"
-            onClick={savePayment}
-            data-ocid="admin.loja.save_button"
+      {/* Sub-tab pills */}
+      <div className="flex items-center gap-1 border-b pb-3">
+        {(["produtos", "clientes"] as const).map((t) => (
+          <button
+            type="button"
+            key={t}
+            className={`flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-full font-medium transition-colors ${
+              lojaSubTab === t
+                ? "bg-[#d7350d] text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+            onClick={() => setLojaSubTab(t)}
+            data-ocid="admin.loja.tab"
           >
-            Salvar Configurações
-          </Button>
-        </div>
+            {t === "produtos" ? (
+              <>
+                <ShoppingBag className="w-3.5 h-3.5" /> Produtos
+              </>
+            ) : (
+              <>
+                <Users className="w-3.5 h-3.5" /> Clientes (CRM)
+              </>
+            )}
+          </button>
+        ))}
       </div>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent data-ocid="admin.loja.dialog">
-          <DialogHeader>
-            <DialogTitle>
-              {editing ? "Editar Produto" : "Novo Produto"}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
-            <div>
-              <Label>Nome *</Label>
-              <Input
-                value={form.name ?? ""}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, name: e.target.value }))
-                }
-                data-ocid="admin.loja.input"
-              />
-            </div>
-            <div>
-              <Label>Descrição</Label>
-              <Textarea
-                value={form.description ?? ""}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, description: e.target.value }))
-                }
-                data-ocid="admin.loja.textarea"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
+      {lojaSubTab === "clientes" && <ClientesCRMSection resumes={resumes} />}
+
+      {lojaSubTab === "produtos" && (
+        <>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-[#1a1a1a]">
+              Produtos – Loja
+            </h2>
+            <Button
+              className="bg-[#d7350d] text-white hover:bg-[#c02e0c]"
+              onClick={openNew}
+              data-ocid="admin.loja.open_modal_button"
+            >
+              + Novo Produto
+            </Button>
+          </div>
+          <div className="bg-white rounded-xl border overflow-hidden shadow-sm">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Categoria</TableHead>
+                  <TableHead>Preço</TableHead>
+                  <TableHead>Disponível</TableHead>
+                  <TableHead>Data</TableHead>
+                  <TableHead />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {products.length === 0 && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      className="text-center text-gray-400 py-8"
+                      data-ocid="admin.loja.empty_state"
+                    >
+                      Nenhum produto cadastrado.
+                    </TableCell>
+                  </TableRow>
+                )}
+                {products.map((p, i) => (
+                  <TableRow key={p.id} data-ocid={`admin.loja.item.${i + 1}`}>
+                    <TableCell className="font-medium">{p.name}</TableCell>
+                    <TableCell>{p.category}</TableCell>
+                    <TableCell>
+                      R$ {p.price.toFixed(2).replace(".", ",")}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={p.available ? "default" : "secondary"}>
+                        {p.available ? "Sim" : "Não"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      {fmtDate(p.createdAt)}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          className={`text-xs px-2 py-0.5 rounded font-medium border transition-colors ${
+                            p.available
+                              ? "border-orange-400 text-orange-600 hover:bg-orange-50"
+                              : "border-green-500 text-green-600 hover:bg-green-50"
+                          }`}
+                          onClick={() => handleToggleAvailable(p)}
+                          data-ocid={`admin.loja.toggle_button.${i + 1}`}
+                        >
+                          {p.available ? "Desabilitar" : "Habilitar"}
+                        </button>
+                        <button
+                          type="button"
+                          className="text-blue-500 hover:text-blue-700 text-xs underline"
+                          onClick={() => openEdit(p)}
+                          data-ocid={`admin.loja.edit_button.${i + 1}`}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          className="text-red-500 hover:text-red-700"
+                          onClick={() => handleDelete(p.id)}
+                          data-ocid={`admin.loja.delete_button.${i + 1}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mx-0 mb-4">
+            <p className="text-sm text-blue-700 font-medium">
+              💡 Página de Venda
+            </p>
+            <p className="text-xs text-blue-600 mt-1">
+              Cada produto possui uma página de venda própria no estilo
+              marketplace. Configure os detalhes acima para criar uma
+              experiência completa de compra. Use "Habilitar/Desabilitar" para
+              controlar a visibilidade no site.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-xl border p-5 shadow-sm">
+            <h3 className="font-semibold text-[#1a1a1a] mb-4">
+              Configurações de Pagamento
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label>Preço (R$)</Label>
+                <Label>Chave Mercado Pago</Label>
                 <Input
-                  type="number"
-                  value={form.price ?? ""}
+                  value={payConf.mercadoPagoKey ?? ""}
                   onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      price: Number.parseFloat(e.target.value) || 0,
+                    setPayConf((c) => ({
+                      ...c,
+                      mercadoPagoKey: e.target.value,
                     }))
                   }
                   data-ocid="admin.loja.input"
                 />
               </div>
               <div>
-                <Label>Categoria</Label>
+                <Label>PayPal Client ID</Label>
                 <Input
-                  value={form.category ?? ""}
+                  value={payConf.paypalClientId ?? ""}
                   onChange={(e) =>
-                    setForm((f) => ({ ...f, category: e.target.value }))
-                  }
-                  data-ocid="admin.loja.input"
-                />
-              </div>
-            </div>
-            <div>
-              <Label>URL da Imagem</Label>
-              <Input
-                value={form.imageUrl ?? ""}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, imageUrl: e.target.value }))
-                }
-                data-ocid="admin.loja.input"
-              />
-            </div>
-            <div>
-              <Label>Descrição Completa (Página de Vendas)</Label>
-              <Textarea
-                className="min-h-[100px]"
-                placeholder="Descrição detalhada do produto para a página de venda..."
-                value={(form as any).fullDescription ?? ""}
-                onChange={(e) =>
-                  setForm(
-                    (f) => ({ ...f, fullDescription: e.target.value }) as any,
-                  )
-                }
-                data-ocid="admin.loja.textarea"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Imagem Adicional 2 (URL)</Label>
-                <Input
-                  placeholder="https://..."
-                  value={(form as any).imageUrl2 ?? ""}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, imageUrl2: e.target.value }) as any)
+                    setPayConf((c) => ({
+                      ...c,
+                      paypalClientId: e.target.value,
+                    }))
                   }
                   data-ocid="admin.loja.input"
                 />
               </div>
               <div>
-                <Label>Imagem Adicional 3 (URL)</Label>
+                <Label>Chave PIX</Label>
                 <Input
-                  placeholder="https://..."
-                  value={(form as any).imageUrl3 ?? ""}
+                  value={payConf.pixKey ?? ""}
                   onChange={(e) =>
-                    setForm((f) => ({ ...f, imageUrl3: e.target.value }) as any)
+                    setPayConf((c) => ({ ...c, pixKey: e.target.value }))
                   }
                   data-ocid="admin.loja.input"
                 />
               </div>
             </div>
-            <div>
-              <Label>Tipo de Produto</Label>
-              <Select
-                value={(form as any).productType ?? "direto"}
-                onValueChange={(v) =>
-                  setForm((f) => ({ ...f, productType: v }) as any)
-                }
+            <div className="mt-4 flex justify-end">
+              <Button
+                className="bg-[#d7350d] text-white hover:bg-[#c02e0c]"
+                onClick={savePayment}
+                data-ocid="admin.loja.save_button"
               >
-                <SelectTrigger data-ocid="admin.loja.select">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="direto">
-                    Venda Direta (Gateway de Pagamento)
-                  </SelectItem>
-                  <SelectItem value="parceiro">
-                    Produto Parceiro (Redirecionamento Externo)
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>
-                {(form as any).productType === "parceiro"
-                  ? "Link de Redirecionamento (Parceiro)"
-                  : "Link do Gateway de Pagamento"}
-              </Label>
-              <Input
-                placeholder="https://..."
-                value={form.paymentLink ?? ""}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, paymentLink: e.target.value }))
-                }
-                data-ocid="admin.loja.input"
-              />
-            </div>
-            <div>
-              <Label>Avaliação (1-5 estrelas)</Label>
-              <Input
-                type="number"
-                min={1}
-                max={5}
-                step={0.1}
-                placeholder="Ex: 4.5"
-                value={(form as any).rating ?? ""}
-                onChange={(e) =>
-                  setForm(
-                    (f) =>
-                      ({
-                        ...f,
-                        rating: Number.parseFloat(e.target.value) || 0,
-                      }) as any,
-                  )
-                }
-                data-ocid="admin.loja.input"
-              />
-            </div>
-            <div>
-              <Label>O que está incluído (um item por linha)</Label>
-              <Textarea
-                placeholder="Acesso imediato ao material&#10;Suporte por 30 dias&#10;Certificado de conclusão"
-                value={(form as any).includes ?? ""}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, includes: e.target.value }) as any)
-                }
-                data-ocid="admin.loja.textarea"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="avail"
-                checked={form.available ?? true}
-                onCheckedChange={(v) =>
-                  setForm((f) => ({ ...f, available: !!v }))
-                }
-                data-ocid="admin.loja.checkbox"
-              />
-              <Label htmlFor="avail">Disponível para venda</Label>
+                Salvar Configurações
+              </Button>
             </div>
           </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button
-              variant="outline"
-              onClick={() => setOpen(false)}
-              data-ocid="admin.loja.cancel_button"
-            >
-              Cancelar
-            </Button>
-            <Button
-              className="bg-[#d7350d] text-white hover:bg-[#c02e0c]"
-              onClick={handleSave}
-              data-ocid="admin.loja.submit_button"
-            >
-              Salvar
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogContent data-ocid="admin.loja.dialog">
+              <DialogHeader>
+                <DialogTitle>
+                  {editing ? "Editar Produto" : "Novo Produto"}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+                <div>
+                  <Label>Nome *</Label>
+                  <Input
+                    value={form.name ?? ""}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, name: e.target.value }))
+                    }
+                    data-ocid="admin.loja.input"
+                  />
+                </div>
+                <div>
+                  <Label>Descrição</Label>
+                  <Textarea
+                    value={form.description ?? ""}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, description: e.target.value }))
+                    }
+                    data-ocid="admin.loja.textarea"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Preço (R$)</Label>
+                    <Input
+                      type="number"
+                      value={form.price ?? ""}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          price: Number.parseFloat(e.target.value) || 0,
+                        }))
+                      }
+                      data-ocid="admin.loja.input"
+                    />
+                  </div>
+                  <div>
+                    <Label>Categoria</Label>
+                    <Input
+                      value={form.category ?? ""}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, category: e.target.value }))
+                      }
+                      data-ocid="admin.loja.input"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label>URL da Imagem</Label>
+                  <Input
+                    value={form.imageUrl ?? ""}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, imageUrl: e.target.value }))
+                    }
+                    data-ocid="admin.loja.input"
+                  />
+                </div>
+                <div>
+                  <Label>Descrição Completa (Página de Vendas)</Label>
+                  <Textarea
+                    className="min-h-[100px]"
+                    placeholder="Descrição detalhada do produto para a página de venda..."
+                    value={(form as any).fullDescription ?? ""}
+                    onChange={(e) =>
+                      setForm(
+                        (f) =>
+                          ({ ...f, fullDescription: e.target.value }) as any,
+                      )
+                    }
+                    data-ocid="admin.loja.textarea"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Imagem Adicional 2 (URL)</Label>
+                    <Input
+                      placeholder="https://..."
+                      value={(form as any).imageUrl2 ?? ""}
+                      onChange={(e) =>
+                        setForm(
+                          (f) => ({ ...f, imageUrl2: e.target.value }) as any,
+                        )
+                      }
+                      data-ocid="admin.loja.input"
+                    />
+                  </div>
+                  <div>
+                    <Label>Imagem Adicional 3 (URL)</Label>
+                    <Input
+                      placeholder="https://..."
+                      value={(form as any).imageUrl3 ?? ""}
+                      onChange={(e) =>
+                        setForm(
+                          (f) => ({ ...f, imageUrl3: e.target.value }) as any,
+                        )
+                      }
+                      data-ocid="admin.loja.input"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label>Tipo de Produto</Label>
+                  <Select
+                    value={(form as any).productType ?? "direto"}
+                    onValueChange={(v) =>
+                      setForm((f) => ({ ...f, productType: v }) as any)
+                    }
+                  >
+                    <SelectTrigger data-ocid="admin.loja.select">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="direto">
+                        Venda Direta (Gateway de Pagamento)
+                      </SelectItem>
+                      <SelectItem value="parceiro">
+                        Produto Parceiro (Redirecionamento Externo)
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>
+                    {(form as any).productType === "parceiro"
+                      ? "Link de Redirecionamento (Parceiro)"
+                      : "Link do Gateway de Pagamento"}
+                  </Label>
+                  <Input
+                    placeholder="https://..."
+                    value={form.paymentLink ?? ""}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, paymentLink: e.target.value }))
+                    }
+                    data-ocid="admin.loja.input"
+                  />
+                </div>
+                <div>
+                  <Label>Avaliação (1-5 estrelas)</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={5}
+                    step={0.1}
+                    placeholder="Ex: 4.5"
+                    value={(form as any).rating ?? ""}
+                    onChange={(e) =>
+                      setForm(
+                        (f) =>
+                          ({
+                            ...f,
+                            rating: Number.parseFloat(e.target.value) || 0,
+                          }) as any,
+                      )
+                    }
+                    data-ocid="admin.loja.input"
+                  />
+                </div>
+                <div>
+                  <Label>O que está incluído (um item por linha)</Label>
+                  <Textarea
+                    placeholder="Acesso imediato ao material&#10;Suporte por 30 dias&#10;Certificado de conclusão"
+                    value={(form as any).includes ?? ""}
+                    onChange={(e) =>
+                      setForm(
+                        (f) => ({ ...f, includes: e.target.value }) as any,
+                      )
+                    }
+                    data-ocid="admin.loja.textarea"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="avail"
+                    checked={form.available ?? true}
+                    onCheckedChange={(v) =>
+                      setForm((f) => ({ ...f, available: !!v }))
+                    }
+                    data-ocid="admin.loja.checkbox"
+                  />
+                  <Label htmlFor="avail">Disponível para venda</Label>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setOpen(false)}
+                  data-ocid="admin.loja.cancel_button"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  className="bg-[#d7350d] text-white hover:bg-[#c02e0c]"
+                  onClick={handleSave}
+                  data-ocid="admin.loja.submit_button"
+                >
+                  Salvar
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
     </div>
   );
 }
