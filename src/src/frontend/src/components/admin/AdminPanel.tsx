@@ -45,6 +45,7 @@ import {
   LogOut,
   Mail,
   MessageSquare,
+  Music,
   RefreshCw,
   Settings,
   ShoppingBag,
@@ -68,7 +69,8 @@ type Tab =
   | "newsletter"
   | "loja"
   | "fontes"
-  | "configuracoes";
+  | "configuracoes"
+  | "audio";
 
 const SIDEBAR_ITEMS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   {
@@ -101,6 +103,11 @@ const SIDEBAR_ITEMS: { id: Tab; label: string; icon: React.ReactNode }[] = [
     id: "configuracoes",
     label: "Configurações",
     icon: <Settings className="w-4 h-4" />,
+  },
+  {
+    id: "audio",
+    label: "Áudio / Música",
+    icon: <Music className="w-4 h-4" />,
   },
 ];
 
@@ -323,6 +330,7 @@ export default function AdminPanel() {
           {activeTab === "loja" && <LojaTab />}
           {activeTab === "fontes" && <FontesTab />}
           {activeTab === "configuracoes" && <ConfiguracoesTab />}
+          {activeTab === "audio" && <AudioTab />}
         </main>
       </div>
     </div>
@@ -2996,6 +3004,202 @@ function ConfiguracoesTab() {
           <X className="w-3 h-3" /> Sair do painel e voltar ao site
         </button>
       </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   AUDIO TAB
+   ========================================================= */
+function AudioTab() {
+  const [audioFiles, setAudioFiles] = useState<
+    { id: string; name: string; url: string; active: boolean }[]
+  >(() => {
+    try {
+      const stored = localStorage.getItem("bds_audio_files");
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  function persistFiles(
+    files: { id: string; name: string; url: string; active: boolean }[],
+  ) {
+    setAudioFiles(files);
+    try {
+      localStorage.setItem("bds_audio_files", JSON.stringify(files));
+      const active = files.find((f) => f.active);
+      if (active) {
+        localStorage.setItem("bds_audio_src", active.url);
+      } else {
+        localStorage.removeItem("bds_audio_src");
+      }
+    } catch {}
+  }
+
+  function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.name.endsWith(".mp3")) {
+      toast.error("Apenas arquivos MP3 são aceitos.");
+      return;
+    }
+    if (audioFiles.length >= 5) {
+      toast.error("Máximo de 5 arquivos de áudio permitidos.");
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    const newFile = {
+      id: crypto.randomUUID(),
+      name: file.name,
+      url,
+      active: false,
+    };
+    persistFiles([...audioFiles, newFile]);
+    toast.success(`"${file.name}" carregado com sucesso.`);
+    e.target.value = "";
+  }
+
+  function setActive(id: string) {
+    const updated = audioFiles.map((f) => ({ ...f, active: f.id === id }));
+    persistFiles(updated);
+    toast.success("Música ativa atualizada. Recarregue a página para aplicar.");
+  }
+
+  function removeFile(id: string) {
+    const updated = audioFiles.filter((f) => f.id !== id);
+    if (audioFiles.find((f) => f.id === id)?.active) {
+      // If removing the active one, clear
+      localStorage.removeItem("bds_audio_src");
+    }
+    persistFiles(
+      updated.map((f, i) =>
+        i === 0 && updated.length === 1 ? { ...f, active: false } : f,
+      ),
+    );
+    toast.success("Arquivo removido.");
+  }
+
+  return (
+    <div className="space-y-6 max-w-2xl">
+      <h2 className="text-lg font-bold text-[#1a1a1a]">Áudio / Música Tema</h2>
+
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+        <strong>Como funciona:</strong> Faça upload de até 5 arquivos MP3.
+        Selecione o arquivo ativo — ele será tocado no botão do header do site.
+        O visitante pode ligar/desligar clicando no botão de áudio no menu.
+      </div>
+
+      {/* Upload area */}
+      <div className="bg-white rounded-xl border-2 border-dashed border-gray-300 hover:border-[#d7350d] transition-colors p-6 text-center">
+        <Music className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+        <p className="text-sm text-gray-600 mb-1">
+          Carregue um arquivo de áudio MP3
+        </p>
+        <p className="text-xs text-gray-400 mb-4">
+          Máximo 5 arquivos • Somente .mp3
+        </p>
+        <label
+          className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+            audioFiles.length >= 5
+              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+              : "bg-[#d7350d] text-white hover:bg-[#b82d0b]"
+          }`}
+          data-ocid="admin.audio.upload_button"
+        >
+          <Music className="w-4 h-4" />
+          {audioFiles.length >= 5 ? "Limite atingido" : "Selecionar MP3"}
+          <input
+            type="file"
+            accept=".mp3,audio/mpeg"
+            className="hidden"
+            disabled={audioFiles.length >= 5}
+            onChange={handleUpload}
+          />
+        </label>
+      </div>
+
+      {/* File list */}
+      {audioFiles.length === 0 ? (
+        <div className="text-center py-8 text-gray-400 text-sm">
+          Nenhum arquivo carregado ainda.
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-gray-700">
+            Arquivos carregados ({audioFiles.length}/5)
+          </h3>
+          {audioFiles.map((file) => (
+            <div
+              key={file.id}
+              className={`flex items-center gap-3 p-4 rounded-xl border transition-all ${
+                file.active
+                  ? "border-[#d7350d] bg-red-50"
+                  : "border-gray-200 bg-white"
+              }`}
+            >
+              <div
+                className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  file.active ? "bg-[#d7350d]" : "bg-gray-100"
+                }`}
+              >
+                <Music
+                  className={`w-4 h-4 ${file.active ? "text-white" : "text-gray-400"}`}
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {file.name}
+                </p>
+                {file.active && (
+                  <span className="text-xs text-[#d7350d] font-semibold">
+                    ● Ativo no header
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {!file.active && (
+                  <button
+                    type="button"
+                    onClick={() => setActive(file.id)}
+                    className="px-3 py-1.5 text-xs rounded-lg border border-[#d7350d] text-[#d7350d] hover:bg-[#d7350d] hover:text-white transition-colors font-medium"
+                    data-ocid="admin.audio.set_active_button"
+                  >
+                    Ativar
+                  </button>
+                )}
+                {file.active && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = audioFiles.map((f) => ({
+                        ...f,
+                        active: false,
+                      }));
+                      persistFiles(updated);
+                      toast.success("Música desativada.");
+                    }}
+                    className="px-3 py-1.5 text-xs rounded-lg border border-gray-300 text-gray-500 hover:border-red-400 hover:text-red-500 transition-colors font-medium"
+                    data-ocid="admin.audio.deactivate_button"
+                  >
+                    Desativar
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => removeFile(file.id)}
+                  className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                  title="Remover arquivo"
+                  data-ocid="admin.audio.remove_button"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

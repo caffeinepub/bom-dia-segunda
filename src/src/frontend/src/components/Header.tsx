@@ -1,3 +1,4 @@
+import AudioPlayer from "@/components/AudioPlayer";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
@@ -7,8 +8,18 @@ const navLinks = [
   { label: "Estatísticas", href: "#estatisticas" },
   { label: "Mercado & Trabalho", href: "#blog" },
   { label: "Mentoria", href: "#mentoria" },
-  { label: "Sobre", href: "#contato" },
+  { label: "Contato", href: "#contato" },
 ];
+
+// Global audio source — in a real app this would come from the backend/CMS
+// For now it reads from localStorage so the CMS can persist the selection
+function getStoredAudioSrc(): string | null {
+  try {
+    return localStorage.getItem("bds_audio_src");
+  } catch {
+    return null;
+  }
+}
 
 function Logo() {
   return (
@@ -22,6 +33,7 @@ function Logo() {
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const audioSrc = getStoredAudioSrc();
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-md">
@@ -35,7 +47,7 @@ export default function Header() {
             <a
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-gray-800 hover:text-white transition-colors"
+              className="text-sm font-medium text-gray-800 hover:text-[#d7350d] transition-colors"
               data-ocid="header.link"
             >
               {link.label}
@@ -44,6 +56,7 @@ export default function Header() {
         </nav>
 
         <div className="hidden md:flex items-center gap-2">
+          <AudioPlayer audioSrc={audioSrc} />
           <Button
             size="sm"
             className="bg-primary hover:bg-primary/90 text-white"
@@ -51,13 +64,6 @@ export default function Header() {
           >
             Publicar Vaga
           </Button>
-          <a
-            href="#contato"
-            className="text-sm text-gray-700 hover:text-gray-900 ml-1"
-            data-ocid="header.link"
-          >
-            Login
-          </a>
         </div>
 
         <button
@@ -77,7 +83,7 @@ export default function Header() {
             <a
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-gray-800 hover:text-white"
+              className="text-sm font-medium text-gray-800 hover:text-[#d7350d]"
               onClick={() => setMenuOpen(false)}
               data-ocid="header.link"
             >
@@ -85,6 +91,7 @@ export default function Header() {
             </a>
           ))}
           <div className="flex flex-col gap-2 pt-2 border-t border-gray-200">
+            <AudioPlayer audioSrc={audioSrc} />
             <Button
               size="sm"
               className="bg-primary text-white"
