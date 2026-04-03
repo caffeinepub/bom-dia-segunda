@@ -1,6 +1,7 @@
 import Avaliador from "@/components/Avaliador";
 import Blog from "@/components/Blog";
 import BlogPostPage from "@/components/BlogPostPage";
+import CidadePage from "@/components/CidadePage";
 import Contato from "@/components/Contato";
 import Depoimentos from "@/components/Depoimentos";
 import Estatisticas from "@/components/Estatisticas";
@@ -19,10 +20,28 @@ import AdminPanel from "@/components/admin/AdminPanel";
 import { Toaster } from "@/components/ui/sonner";
 import { useEffect, useState } from "react";
 
+type PageState =
+  | { type: "main" }
+  | { type: "admin" }
+  | { type: "publicar-vaga" }
+  | { type: "cidade"; slug: string };
+
+function parseHash(hash: string): PageState {
+  if (hash === "#admin") return { type: "admin" };
+  if (hash === "#publicar-vaga") return { type: "publicar-vaga" };
+  if (hash.startsWith("#cidade-")) {
+    const slug = hash.replace("#cidade-", "");
+    if (slug) return { type: "cidade", slug };
+  }
+  return { type: "main" };
+}
+
 export default function App() {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [searchCity, setSearchCity] = useState("Todas");
-  const [currentHash, setCurrentHash] = useState(window.location.hash);
+  const [activePage, setActivePage] = useState<PageState>(() =>
+    parseHash(window.location.hash),
+  );
   const [showMentoriaInscricao, setShowMentoriaInscricao] = useState(false);
   const [blogPostId, setBlogPostId] = useState<string | null>(null);
   const [productId, setProductId] = useState<string | null>(null);
@@ -34,7 +53,7 @@ export default function App() {
 
   useEffect(() => {
     function onHashChange() {
-      setCurrentHash(window.location.hash);
+      setActivePage(parseHash(window.location.hash));
     }
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
@@ -45,7 +64,7 @@ export default function App() {
     setSearchCity(city);
   };
 
-  if (currentHash === "#admin") {
+  if (activePage.type === "admin") {
     return (
       <>
         <AdminPanel />
@@ -54,10 +73,20 @@ export default function App() {
     );
   }
 
-  if (currentHash === "#publicar-vaga") {
+  if (activePage.type === "publicar-vaga") {
     return (
       <>
         <PublicarVaga />
+        <Toaster />
+      </>
+    );
+  }
+
+  if (activePage.type === "cidade") {
+    return (
+      <>
+        <CidadePage slug={activePage.slug} />
+        <WhatsAppFloat />
         <Toaster />
       </>
     );
@@ -69,9 +98,7 @@ export default function App() {
         <RelatorioVenda
           overallScore={relatorioData.overallScore}
           candidateName={relatorioData.candidateName}
-          onBuy={() => {
-            setShowRelatorioVenda(false);
-          }}
+          onBuy={() => setShowRelatorioVenda(false)}
           onBack={() => setShowRelatorioVenda(false)}
         />
         <Toaster />

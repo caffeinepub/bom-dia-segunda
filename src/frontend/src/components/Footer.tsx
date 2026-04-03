@@ -1,10 +1,13 @@
+import { getCidadeSlug } from "@/data/cidades";
+import { Sun } from "lucide-react";
+
 const currentYear = new Date().getFullYear();
 
 const quickLinks = [
   { label: "Encontrar Vagas", href: "#vagas" },
   { label: "Avaliar Currículo", href: "#avaliador" },
   { label: "Mentoria", href: "#mentoria" },
-  { label: "Mercado & trabalho", href: "#blog" },
+  { label: "MERCADO & TRABALHO", href: "#blog" },
   { label: "Bom Dia Segunda Shopping", href: "#loja" },
   { label: "Sobre Nós", href: "#contato" },
   { label: "Publicar Vaga", href: "#contato" },
@@ -50,6 +53,34 @@ const socialLinks = [
         aria-hidden="true"
       >
         <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+      </svg>
+    ),
+  },
+  {
+    name: "X (Twitter)",
+    href: "https://www.x.com/bomdiasegunda",
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        className="w-5 h-5"
+        aria-hidden="true"
+      >
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+      </svg>
+    ),
+  },
+  {
+    name: "Threads",
+    href: "https://www.threads.net/@bomdiasegunda",
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        className="w-5 h-5"
+        aria-hidden="true"
+      >
+        <path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.5 12.068c0-3.52.85-6.375 2.495-8.424C5.844 1.34 8.598.16 12.18.136h.014c2.66.018 4.944.744 6.788 2.159a10.14 10.14 0 0 1 3.528 5.21c.39 1.452.508 3.02.353 4.662C22.57 13.86 21.4 15.396 19.7 16.5c-1.698 1.102-3.735 1.702-5.89 1.74a9.434 9.434 0 0 1-1.623-.13v-1.93c.523.084 1.063.124 1.613.116 1.803-.032 3.512-.52 4.932-1.412 1.173-.762 1.99-1.836 2.29-3.012.118-.46.175-.93.175-1.402 0-.38-.033-.75-.1-1.105a8.14 8.14 0 0 0-2.83-4.19c-1.52-1.163-3.46-1.77-5.766-1.784h-.012c-3.052.02-5.38 1.024-6.91 2.987C4.744 8.46 4.096 10.875 4.096 12.068c0 3.143.717 5.61 2.131 7.338 1.39 1.69 3.553 2.577 6.43 2.596h.006c1.12.007 2.176-.183 3.138-.565l.68 1.8A11.53 11.53 0 0 1 12.186 24z" />
       </svg>
     ),
   },
@@ -153,6 +184,12 @@ const socialLinks = [
   },
 ];
 
+function navigateToCity(cityName: string) {
+  const slug = getCidadeSlug(cityName);
+  window.location.hash = `cidade-${slug}`;
+  window.scrollTo(0, 0);
+}
+
 export default function Footer() {
   return (
     <footer style={{ background: "#111" }} className="text-white/70 py-12 px-4">
@@ -177,7 +214,7 @@ export default function Footer() {
               </p>
               <p className="text-xs leading-relaxed">
                 Especialista em Gestão de Pessoas (UNIFEI), formado em
-                Controladoria e Gestão em Recursos Humanos (UNIFOA), vem atuando
+                Controladoria e Gestão em Recursos Humanos (UNIFOA), vem
                 auxiliando pessoas e empresas no processo de ressignificação e
                 desenvolvimento. Possui ampla experiência em educação
                 profissional, treinamento e desenvolvimento de pessoas. Atua há
@@ -191,13 +228,11 @@ export default function Footer() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
           <div>
-            {/* Logo BOMDIASEGUNDA */}
-            <div className="mb-3">
-              <span className="font-black italic text-2xl leading-none">
-                <span style={{ color: "#ffffff" }}>BOM</span>
-                <span style={{ color: "#d7350d" }}>DIA</span>
-                <span style={{ color: "#ffffff" }}>SEGUNDA</span>
-              </span>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                <Sun className="w-4 h-4 text-white" />
+              </div>
+              <span className="font-bold text-white">Bom Dia Segunda</span>
             </div>
             <p className="text-xs leading-relaxed mb-5">
               A principal plataforma de vagas de emprego do Sul Fluminense.
@@ -246,12 +281,14 @@ export default function Footer() {
             <ul className="space-y-2 text-xs columns-2">
               {cities.map((c) => (
                 <li key={c}>
-                  <a
-                    href="#vagas"
-                    className="hover:text-primary transition-colors"
+                  <button
+                    type="button"
+                    onClick={() => navigateToCity(c)}
+                    className="hover:text-primary transition-colors text-left cursor-pointer bg-transparent border-0 p-0 text-white/70"
+                    data-ocid="footer.cidade.link"
                   >
                     {c}
-                  </a>
+                  </button>
                 </li>
               ))}
             </ul>
