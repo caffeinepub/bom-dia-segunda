@@ -63,6 +63,7 @@ import {
   MapPin,
   MessageSquare,
   Music,
+  Pencil,
   RefreshCw,
   Search,
   Settings,
@@ -4051,16 +4052,182 @@ function LojaTab() {
 /* =========================================================
    FONTES DE VAGAS TAB
    ========================================================= */
+
+const DEFAULT_SOURCES: JobSource[] = [
+  // --- Portais Nacionais ---
+  {
+    id: "catho",
+    name: "Catho",
+    url: "https://www.catho.com.br/vagas-emprego/?q=vagas&where=sul+fluminense",
+    region: "Nacional / Sul Fluminense",
+    active: true,
+    notes:
+      "Maior portal de empregos do Brasil. Filtrar por cidade: Resende, Volta Redonda, Barra Mansa, Angra dos Reis, Itatiaia. Coletar apenas vagas com data de publicação nas últimas 24h.",
+    createdAt: BigInt(0),
+  },
+  {
+    id: "infojobs",
+    name: "InfoJobs",
+    url: "https://www.infojobs.com.br/empregos.aspx?ciudad=sul-fluminense",
+    region: "Nacional / Sul Fluminense",
+    active: true,
+    notes:
+      "Portal consolidado. Buscar por localidade e filtrar por 'Publicado hoje' ou 'Últimas 24h'. Excluir vagas sem geolocalização confirmada (exceto remotas).",
+    createdAt: BigInt(0),
+  },
+  {
+    id: "indeed",
+    name: "Indeed Brasil",
+    url: "https://br.indeed.com/vagas?q=emprego&l=Sul+Fluminense%2C+RJ",
+    region: "Nacional / Sul Fluminense",
+    active: true,
+    notes:
+      "Maior motor de busca de empregos do mundo. Buscar por 'Sul Fluminense RJ', 'Volta Redonda', 'Resende', 'Barra Mansa'. Incluir vagas remotas separadamente.",
+    createdAt: BigInt(0),
+  },
+  {
+    id: "linkedin",
+    name: "LinkedIn Vagas",
+    url: "https://www.linkedin.com/jobs/search/?location=Sul%20Fluminense%2C%20Rio%20de%20Janeiro%2C%20Brasil",
+    region: "Nacional / Sul Fluminense",
+    active: true,
+    notes:
+      "Alta qualidade de vagas CLT, PJ e Remoto. Filtrar por: localidade Sul Fluminense, data de publicação '24 horas'. Priorizar vagas de empresas verificadas.",
+    createdAt: BigInt(0),
+  },
+  {
+    id: "vagas_com",
+    name: "Vagas.com",
+    url: "https://www.vagas.com.br/vagas-de-emprego-sul-fluminense-rj",
+    region: "Nacional / Sul Fluminense",
+    active: true,
+    notes:
+      "Foco em vagas formais CLT. Filtrar por estado RJ e cidades da região. Coletar categoria, salário e benefícios quando disponíveis.",
+    createdAt: BigInt(0),
+  },
+  {
+    id: "sine",
+    name: "SINE / Emprega Brasil",
+    url: "https://empregabrasil.mte.gov.br/",
+    region: "Nacional / Governo",
+    active: true,
+    notes:
+      "Sistema Nacional de Emprego. Vagas oficiais do governo federal, inclui PCD e Jovem Aprendiz. Fonte prioritária para vagas assistidas. Verificar agências de SINE de Volta Redonda e Resende.",
+    createdAt: BigInt(0),
+  },
+  {
+    id: "glassdoor",
+    name: "Glassdoor",
+    url: "https://www.glassdoor.com.br/Vagas/sul-fluminense-vagas-SRCH_IL.0,14_IC2712853.htm",
+    region: "Nacional / Sul Fluminense",
+    active: true,
+    notes:
+      "Bom para vagas com informação salarial. Combinar com dados de mercado para a seção 'O MERCADO EM NÚMEROS'. Filtrar por últimas 24h.",
+    createdAt: BigInt(0),
+  },
+  {
+    id: "trabalha_brasil",
+    name: "Trabalha Brasil",
+    url: "https://www.trabalhabrasil.com.br/vagas-empregos-em-sul-fluminense-rj",
+    region: "Sul Fluminense",
+    active: true,
+    notes:
+      "Vagas locais e regionais. Boa cobertura de Volta Redonda, Barra Mansa, Resende e Angra dos Reis. Coletar vagas de estágio e jovem aprendiz separadamente.",
+    createdAt: BigInt(0),
+  },
+  // --- Grupos e Redes Sociais ---
+  {
+    id: "grupo_whatsapp_vr",
+    name: "Grupos WhatsApp — Vagas VR e Região",
+    url: "https://chat.whatsapp.com/",
+    region: "Volta Redonda e Região",
+    active: true,
+    notes:
+      "Monitorar grupos de WhatsApp de vagas do Sul Fluminense. Vagas coletadas manualmente pelo admin. Verificar: nome da empresa, cidade, tipo de contratação e prazo. Não publicar vagas sem cidade identificada (exceto remotas).",
+    createdAt: BigInt(0),
+  },
+  {
+    id: "grupo_facebook_vr",
+    name: "Grupos Facebook — Empregos Sul Fluminense",
+    url: "https://www.facebook.com/groups/",
+    region: "Sul Fluminense",
+    active: true,
+    notes:
+      "Grupos: 'Vagas de Emprego Volta Redonda', 'Empregos Barra Mansa e Região', 'Vagas Resende RJ'. Coletar diariamente. Inserção manual pelo admin. Verificar autenticidade antes de publicar.",
+    createdAt: BigInt(0),
+  },
+  {
+    id: "grupo_telegram_rj",
+    name: "Grupos Telegram — Vagas RJ",
+    url: "https://t.me/",
+    region: "Rio de Janeiro / Sul Fluminense",
+    active: true,
+    notes:
+      "Canais de vagas do interior RJ. Monitorar canais públicos com vagas para a região. Inserção manual. Priorizar vagas com informação de geolocalização confirmada.",
+    createdAt: BigInt(0),
+  },
+  // --- Locais / Regionais ---
+  {
+    id: "prefeitura_vr",
+    name: "Prefeitura de Volta Redonda — Emprego",
+    url: "https://www.voltaredonda.rj.gov.br/",
+    region: "Volta Redonda",
+    active: true,
+    notes:
+      "Vagas do SINE municipal, vagas públicas, concursos e processos seletivos. Verificar página de notícias e secretaria de trabalho. Inserção manual pelo admin.",
+    createdAt: BigInt(0),
+  },
+  {
+    id: "prefeitura_resende",
+    name: "Prefeitura de Resende — Emprego",
+    url: "https://www.resende.rj.gov.br/",
+    region: "Resende",
+    active: true,
+    notes:
+      "Vagas do Polo Industrial de Resende. Incluir vagas da Zona de Processamento de Exportação (ZPE) e grandes empresas do setor automotivo. Inserção manual.",
+    createdAt: BigInt(0),
+  },
+  {
+    id: "csn_vagas",
+    name: "CSN — Companhia Siderúrgica Nacional",
+    url: "https://www.csn.com.br/pt-br/carreiras",
+    region: "Volta Redonda",
+    active: true,
+    notes:
+      "Maior empregadora da cidade. Coletar vagas abertas no portal de carreiras. Inclui vagas diretas, estágio e jovem aprendiz. Alta prioridade — publicar no mesmo dia da abertura.",
+    createdAt: BigInt(0),
+  },
+  {
+    id: "nipoarcos",
+    name: "Nipo / Arcos e Empresas do Polo de Resende",
+    url: "https://www.linkedin.com/company/polo-industrial-resende",
+    region: "Resende / Itatiaia",
+    active: true,
+    notes:
+      "Polo Industrial de Resende: Volkswagen, MAN Latin America, Nissan, Toyota, Hyundai, GE. Monitorar portais de carreiras de cada empresa e LinkedIn. Alta relevância para a região.",
+    createdAt: BigInt(0),
+  },
+];
+
 function FontesTab() {
   const { actor } = useActor();
   const [sources, setSources] = useState<JobSource[]>([]);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<JobSource | null>(null);
   const [form, setForm] = useState<Partial<JobSource>>({ active: true });
+  const [updating, setUpdating] = useState(false);
+  const [viewSource, setViewSource] = useState<JobSource | null>(null);
 
   async function load() {
     try {
-      const list = await actor!.getJobSources();
+      let list = await actor!.getJobSources();
+      // Se não há fontes cadastradas, pré-popular com as padrão
+      if (list.length === 0) {
+        for (const s of DEFAULT_SOURCES) {
+          await actor!.addJobSource(s);
+        }
+        list = await actor!.getJobSources();
+      }
       setSources(list);
     } catch {
       toast.error("Erro ao carregar fontes.");
@@ -4074,7 +4241,7 @@ function FontesTab() {
 
   function openNew() {
     setEditing(null);
-    setForm({ active: true });
+    setForm({ active: true, region: "Sul Fluminense" });
     setOpen(true);
   }
   function openEdit(s: JobSource) {
@@ -4122,27 +4289,178 @@ function FontesTab() {
     }
   }
 
+  async function handleTriggerUpdate() {
+    setUpdating(true);
+    try {
+      await actor!.triggerWeeklyUpdate();
+      toast.success(
+        "Atualização e divulgação disparadas! As vagas serão coletadas e publicadas em breve.",
+      );
+    } catch {
+      toast.error("Erro ao disparar atualização.");
+    } finally {
+      setUpdating(false);
+    }
+  }
+
+  const activeSources = sources.filter((s) => s.active);
+  const inactiveSources = sources.filter((s) => !s.active);
+
+  const cidadesCobertas = [
+    "Volta Redonda",
+    "Barra Mansa",
+    "Resende",
+    "Itatiaia",
+    "Angra dos Reis",
+    "Paraty",
+    "Porto Real",
+    "Barra do Piraí",
+    "Valença",
+    "Vassouras",
+    "Três Rios",
+    "Paraíba do Sul",
+    "Piraí",
+    "Rio Claro",
+    "Mendes",
+    "Engenheiro Paulo de Frontin",
+    "Pinheiral",
+    "Quatis",
+    "Rio das Flores",
+    "Sapucaia",
+  ];
+
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold text-[#1a1a1a]">Fontes de Vagas</h2>
-        <Button
-          className="bg-[#d7350d] text-white hover:bg-[#c02e0c]"
-          onClick={openNew}
-          data-ocid="admin.fontes.open_modal_button"
-        >
-          + Nova Fonte
-        </Button>
+    <div className="space-y-5">
+      {/* Header com botão de atualização */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-bold text-[#1a1a1a]">Fontes de Vagas</h2>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {activeSources.length} fontes ativas • {inactiveSources.length}{" "}
+            inativas
+          </p>
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            className="bg-[#d7350d] text-white hover:bg-[#c02e0c] flex items-center gap-2 font-semibold"
+            onClick={handleTriggerUpdate}
+            disabled={updating}
+            data-ocid="admin.fontes.trigger_update_button"
+          >
+            <RefreshCw
+              className={`w-4 h-4 ${updating ? "animate-spin" : ""}`}
+            />
+            {updating
+              ? "Atualizando vagas..."
+              : "▶ Disparar Atualização + Divulgação"}
+          </Button>
+          <Button
+            variant="outline"
+            className="border-[#d7350d] text-[#d7350d] hover:bg-red-50"
+            onClick={openNew}
+            data-ocid="admin.fontes.open_modal_button"
+          >
+            + Nova Fonte
+          </Button>
+        </div>
       </div>
+
+      {/* Painel de Geolocalização */}
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+        <div className="flex items-start gap-3">
+          <span className="text-2xl">📍</span>
+          <div>
+            <h3 className="font-semibold text-blue-900 text-sm mb-1">
+              Geolocalização das Vagas
+            </h3>
+            <p className="text-xs text-blue-700 mb-2">
+              A coleta respeita a geolocalização de cada vaga. Vagas presenciais
+              devem corresponder a uma das cidades abaixo. Vagas{" "}
+              <strong>remotas e híbridas</strong> são coletadas sem restrição
+              geográfica.
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {cidadesCobertas.map((c) => (
+                <span
+                  key={c}
+                  className="bg-white border border-blue-200 text-blue-800 text-xs px-2 py-0.5 rounded-full"
+                >
+                  {c}
+                </span>
+              ))}
+              <span className="bg-[#d7350d] text-white text-xs px-2 py-0.5 rounded-full font-medium">
+                + Todo o Brasil (remotas)
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Orientações gerais de coleta */}
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+        <div className="flex items-start gap-3">
+          <span className="text-2xl">📋</span>
+          <div>
+            <h3 className="font-semibold text-amber-900 text-sm mb-1">
+              Orientações Gerais de Coleta
+            </h3>
+            <ul className="text-xs text-amber-800 space-y-1 list-disc list-inside">
+              <li>
+                Coletar apenas vagas publicadas nas{" "}
+                <strong>últimas 24 horas</strong>. Vagas com mais de 10 dias são
+                excluídas automaticamente.
+              </li>
+              <li>
+                Vagas novas recebem automaticamente a tag{" "}
+                <span className="bg-green-100 text-green-700 text-xs px-1.5 py-0.5 rounded font-semibold">
+                  Nova
+                </span>
+                .
+              </li>
+              <li>
+                Período de compilação: <strong>domingo a sábado</strong>.
+                Atualização automática diária iniciando às{" "}
+                <strong>23:50</strong>.
+              </li>
+              <li>
+                Vagas de grupos (WhatsApp, Facebook, Telegram) devem ser
+                inseridas <strong>manualmente</strong> pelo admin com validação
+                prévia.
+              </li>
+              <li>
+                Validar cidade antes de publicar. Se a cidade não estiver na
+                lista de cobertura e não for remota,{" "}
+                <strong>não publicar</strong>.
+              </li>
+              <li>
+                Incluir sempre: cargo, empresa (quando disponível), cidade, tipo
+                de contratação, salário (quando disponível) e link original.
+              </li>
+              <li>
+                Badges automáticos:{" "}
+                <strong>PCD, Jovem Aprendiz, Urgente, Remoto</strong> — aplicar
+                conforme descritivo da vaga.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabela de fontes */}
       <div className="bg-white rounded-xl border overflow-hidden shadow-sm">
+        <div className="px-4 pt-4 pb-2 border-b bg-gray-50">
+          <h3 className="text-sm font-semibold text-gray-700">
+            Fontes Cadastradas ({sources.length})
+          </h3>
+        </div>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nome</TableHead>
+              <TableHead>Nome / Tipo</TableHead>
               <TableHead>URL</TableHead>
               <TableHead>Região</TableHead>
-              <TableHead>Ativa</TableHead>
-              <TableHead>Notas</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Orientações</TableHead>
               <TableHead />
             </TableRow>
           </TableHeader>
@@ -4154,49 +4472,67 @@ function FontesTab() {
                   className="text-center text-gray-400 py-8"
                   data-ocid="admin.fontes.empty_state"
                 >
-                  Nenhuma fonte cadastrada.
+                  Carregando fontes...
                 </TableCell>
               </TableRow>
             )}
             {sources.map((s, i) => (
               <TableRow key={s.id} data-ocid={`admin.fontes.item.${i + 1}`}>
-                <TableCell className="font-medium">{s.name}</TableCell>
-                <TableCell className="max-w-[200px] truncate text-xs">
+                <TableCell className="font-medium max-w-[140px]">
+                  {s.name}
+                </TableCell>
+                <TableCell className="max-w-[180px] truncate text-xs">
                   <a
                     href={s.url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-500 hover:underline"
                   >
-                    {s.url}
+                    {s.url
+                      .replace("https://", "")
+                      .replace("http://", "")
+                      .slice(0, 35)}
+                    {s.url.length > 43 ? "…" : ""}
                   </a>
                 </TableCell>
-                <TableCell>{s.region}</TableCell>
+                <TableCell className="text-xs">{s.region}</TableCell>
                 <TableCell>
                   <Badge variant={s.active ? "default" : "secondary"}>
                     {s.active ? "Ativa" : "Inativa"}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-xs max-w-[140px] truncate">
-                  {s.notes}
-                </TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
+                <TableCell className="max-w-[200px]">
+                  {s.notes ? (
                     <button
                       type="button"
-                      className="text-blue-500 hover:text-blue-700 text-xs underline"
+                      className="text-xs text-blue-600 hover:underline text-left"
+                      onClick={() => setViewSource(s)}
+                      data-ocid={`admin.fontes.view_notes.${i + 1}`}
+                    >
+                      {s.notes.slice(0, 50)}
+                      {s.notes.length > 50 ? "… ver mais" : ""}
+                    </button>
+                  ) : (
+                    <span className="text-xs text-gray-400">—</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-1">
+                    <button
+                      type="button"
+                      className="p-1.5 rounded hover:bg-gray-100 text-gray-500"
                       onClick={() => openEdit(s)}
                       data-ocid={`admin.fontes.edit_button.${i + 1}`}
                     >
-                      Editar
+                      <Pencil className="w-3.5 h-3.5" />
                     </button>
                     <button
                       type="button"
-                      className="text-red-500 hover:text-red-700"
+                      className="p-1.5 rounded hover:bg-red-50 text-red-400"
                       onClick={() => handleDelete(s.id)}
                       data-ocid={`admin.fontes.delete_button.${i + 1}`}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </TableCell>
@@ -4206,6 +4542,48 @@ function FontesTab() {
         </Table>
       </div>
 
+      {/* Modal de orientações detalhadas */}
+      <Dialog open={!!viewSource} onOpenChange={() => setViewSource(null)}>
+        <DialogContent data-ocid="admin.fontes.notes_dialog">
+          <DialogHeader>
+            <DialogTitle>{viewSource?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 mb-1">URL</p>
+              <a
+                href={viewSource?.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-blue-500 hover:underline break-all"
+              >
+                {viewSource?.url}
+              </a>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-gray-500 mb-1">
+                Região de Cobertura
+              </p>
+              <p className="text-sm">{viewSource?.region}</p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-gray-500 mb-1">
+                Orientações de Coleta
+              </p>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-900">
+                {viewSource?.notes}
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end pt-2">
+            <Button variant="outline" onClick={() => setViewSource(null)}>
+              Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de adicionar/editar */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent data-ocid="admin.fontes.dialog">
           <DialogHeader>
@@ -4235,9 +4613,10 @@ function FontesTab() {
               />
             </div>
             <div>
-              <Label>Região</Label>
+              <Label>Região de Cobertura</Label>
               <Input
                 value={form.region ?? ""}
+                placeholder="Ex: Sul Fluminense, Nacional, Volta Redonda"
                 onChange={(e) =>
                   setForm((f) => ({ ...f, region: e.target.value }))
                 }
@@ -4245,9 +4624,11 @@ function FontesTab() {
               />
             </div>
             <div>
-              <Label>Notas</Label>
+              <Label>Orientações de Coleta</Label>
               <Textarea
                 value={form.notes ?? ""}
+                placeholder="Descreva como coletar, filtros a usar, tipo de vaga, observações..."
+                className="min-h-[100px]"
                 onChange={(e) =>
                   setForm((f) => ({ ...f, notes: e.target.value }))
                 }
@@ -4286,6 +4667,8 @@ function FontesTab() {
   );
 }
 
+/* =========================================================
+   CONFIGURAÇÕES TAB
 /* =========================================================
    CONFIGURAÇÕES TAB
    ========================================================= */
