@@ -46,6 +46,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { type CidadeInfo, cidades as cidadesData } from "@/data/cidades";
 import { useActor } from "@/hooks/useActor";
 import {
   BookOpen,
@@ -59,7 +60,9 @@ import {
   Layers,
   LogOut,
   Mail,
+  MapPin,
   MessageSquare,
+  Music,
   RefreshCw,
   Search,
   Settings,
@@ -68,6 +71,7 @@ import {
   Star,
   Trash2,
   TrendingUp,
+  Upload,
   UserPlus,
   Users,
   X,
@@ -86,6 +90,8 @@ type Tab =
   | "newsletter"
   | "loja"
   | "fontes"
+  | "audio"
+  | "cidades"
   | "configuracoes";
 
 const SIDEBAR_ITEMS: { id: Tab; label: string; icon: React.ReactNode }[] = [
@@ -114,6 +120,16 @@ const SIDEBAR_ITEMS: { id: Tab; label: string; icon: React.ReactNode }[] = [
     id: "fontes",
     label: "Fontes de Vagas",
     icon: <Globe className="w-4 h-4" />,
+  },
+  {
+    id: "audio",
+    label: "Áudio / Música",
+    icon: <Music className="w-4 h-4" />,
+  },
+  {
+    id: "cidades",
+    label: "Cidades",
+    icon: <MapPin className="w-4 h-4" />,
   },
   {
     id: "configuracoes",
@@ -340,6 +356,8 @@ export default function AdminPanel() {
           {activeTab === "newsletter" && <NewsletterTab />}
           {activeTab === "loja" && <LojaTab />}
           {activeTab === "fontes" && <FontesTab />}
+          {activeTab === "audio" && <AudioTab />}
+          {activeTab === "cidades" && <CidadesTab />}
           {activeTab === "configuracoes" && <ConfiguracoesTab />}
         </main>
       </div>
@@ -4649,6 +4667,600 @@ function ConfiguracoesTab() {
         >
           <X className="w-3 h-3" /> Sair do painel e voltar ao site
         </button>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   AUDIO TAB
+   ========================================================= */
+interface AudioFile {
+  id: string;
+  name: string;
+  src: string;
+  isActive: boolean;
+}
+
+function AudioTab() {
+  const [audioFiles, setAudioFiles] = useState<AudioFile[]>([
+    {
+      id: "1",
+      name: "Música Tema BomDiaSegunda",
+      src: "/assets/audio/tema-bomdiasegunda.mp3",
+      isActive: true,
+    },
+  ]);
+  const [previewAudio, setPreviewAudio] = useState<HTMLAudioElement | null>(
+    null,
+  );
+  const [playingId, setPlayingId] = useState<string | null>(null);
+
+  function handleSetActive(id: string) {
+    const file = audioFiles.find((f) => f.id === id);
+    if (!file) return;
+    setAudioFiles((prev) => prev.map((f) => ({ ...f, isActive: f.id === id })));
+    localStorage.setItem("bds_audio_src", file.src);
+    toast.success("Áudio ativo atualizado!");
+  }
+
+  function handlePreview(file: AudioFile) {
+    if (previewAudio) {
+      previewAudio.pause();
+      previewAudio.src = "";
+    }
+    if (playingId === file.id) {
+      setPlayingId(null);
+      setPreviewAudio(null);
+      return;
+    }
+    const audio = new Audio(file.src);
+    audio.play().catch(() => {});
+    audio.addEventListener("ended", () => setPlayingId(null));
+    setPreviewAudio(audio);
+    setPlayingId(file.id);
+  }
+
+  function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    if (audioFiles.length >= 5) {
+      toast.error(
+        "Limite de 5 arquivos MP3 atingido. Remova um antes de adicionar.",
+      );
+      return;
+    }
+    const file = files[0];
+    const objectUrl = URL.createObjectURL(file);
+    const newFile: AudioFile = {
+      id: Date.now().toString(),
+      name: file.name.replace(/\.mp3$/i, ""),
+      src: objectUrl,
+      isActive: false,
+    };
+    setAudioFiles((prev) => [...prev, newFile]);
+    toast.success("Arquivo adicionado!");
+  }
+
+  function handleDelete(id: string) {
+    const file = audioFiles.find((f) => f.id === id);
+    if (file?.isActive) {
+      toast.error("Não é possível remover o arquivo ativo.");
+      return;
+    }
+    setAudioFiles((prev) => prev.filter((f) => f.id !== id));
+  }
+
+  return (
+    <div className="space-y-6 max-w-2xl">
+      <div>
+        <h2 className="text-xl font-bold text-gray-800 mb-1">
+          Áudio / Música Tema
+        </h2>
+        <p className="text-sm text-gray-500">
+          Gerencie os arquivos de áudio. O arquivo marcado como{" "}
+          <strong>ATIVO</strong> será tocado no header do site.
+        </p>
+      </div>
+
+      <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+        <div className="p-4 border-b bg-gray-50 flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-700">
+            Arquivos MP3 ({audioFiles.length}/5)
+          </span>
+          <label
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium cursor-pointer transition-colors ${
+              audioFiles.length >= 5
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-[#d7350d] text-white hover:bg-[#c02e0c]"
+            }`}
+            data-ocid="admin.audio.upload_button"
+          >
+            <Upload className="w-3.5 h-3.5" />
+            Adicionar MP3
+            <input
+              type="file"
+              accept=".mp3,audio/mpeg"
+              className="hidden"
+              onChange={handleUpload}
+              disabled={audioFiles.length >= 5}
+            />
+          </label>
+        </div>
+
+        <div className="divide-y">
+          {audioFiles.map((file) => (
+            <div
+              key={file.id}
+              className="flex items-center gap-3 p-4"
+              data-ocid={`admin.audio.item.${audioFiles.indexOf(file) + 1}`}
+            >
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-gray-800 text-sm truncate">
+                    {file.name}
+                  </span>
+                  {file.isActive && (
+                    <Badge className="bg-green-100 text-green-700 border-green-200 text-xs">
+                      ATIVO
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-xs text-gray-400 truncate mt-0.5">
+                  {file.src}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePreview(file)}
+                  className="h-7 px-2 text-xs"
+                  data-ocid="admin.audio.button"
+                >
+                  {playingId === file.id ? (
+                    <>
+                      <X className="w-3 h-3 mr-1" /> Parar
+                    </>
+                  ) : (
+                    <>
+                      <Music className="w-3 h-3 mr-1" /> Ouvir
+                    </>
+                  )}
+                </Button>
+                {!file.isActive && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleSetActive(file.id)}
+                    className="h-7 px-2 text-xs border-green-300 text-green-700 hover:bg-green-50"
+                    data-ocid="admin.audio.primary_button"
+                  >
+                    <Check className="w-3 h-3 mr-1" />
+                    Definir como Ativo
+                  </Button>
+                )}
+                {audioFiles.length > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDelete(file.id)}
+                    className="h-7 w-7 p-0 text-red-400 hover:text-red-600 hover:bg-red-50"
+                    data-ocid="admin.audio.delete_button"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-700">
+        <strong>ℹ️ Como funciona:</strong> O tocador no header irá reproduzir o
+        arquivo marcado como ativo. Você pode armazenar até 5 versões de arquivo
+        MP3.
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   CIDADES TAB
+   ========================================================= */
+function CidadesTab() {
+  const [cidadesList, setCidadesList] = useState<CidadeInfo[]>(() =>
+    cidadesData.map((c) => ({ ...c })),
+  );
+  const [selectedSlug, setSelectedSlug] = useState<string | null>(
+    cidadesData[0]?.slug ?? null,
+  );
+  const [saved, setSaved] = useState(false);
+
+  const selectedCidade =
+    cidadesList.find((c) => c.slug === selectedSlug) ?? null;
+
+  function updateField<K extends keyof CidadeInfo>(
+    slug: string,
+    field: K,
+    value: CidadeInfo[K],
+  ) {
+    setCidadesList((prev) =>
+      prev.map((c) => (c.slug === slug ? { ...c, [field]: value } : c)),
+    );
+    setSaved(false);
+  }
+
+  function handleSave() {
+    setSaved(true);
+    toast.success("Cidade atualizada!");
+  }
+
+  function handleFotoUpload(
+    slug: string,
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const objectUrl = URL.createObjectURL(file);
+    updateField(slug, "fotoUrl", objectUrl);
+  }
+
+  return (
+    <div>
+      <div className="mb-4">
+        <h2 className="text-xl font-bold text-gray-800 mb-1">
+          Gerenciar Cidades
+        </h2>
+        <p className="text-sm text-gray-500">
+          Edite as informações e fotos das páginas de cada cidade.
+        </p>
+      </div>
+
+      <div className="flex gap-4" style={{ minHeight: "600px" }}>
+        {/* City list */}
+        <div
+          className="w-52 shrink-0 bg-white rounded-xl border shadow-sm overflow-y-auto"
+          style={{ maxHeight: "70vh" }}
+        >
+          <div className="p-3 border-b bg-gray-50">
+            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+              Cidades ({cidadesList.length})
+            </span>
+          </div>
+          <div className="divide-y">
+            {cidadesList.map((cidade) => (
+              <button
+                key={cidade.slug}
+                type="button"
+                onClick={() => {
+                  setSelectedSlug(cidade.slug);
+                  setSaved(false);
+                }}
+                className={`w-full flex items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors ${
+                  selectedSlug === cidade.slug
+                    ? "bg-[#d7350d]/10 text-[#d7350d] font-medium"
+                    : "text-gray-700 hover:bg-gray-50"
+                }`}
+                data-ocid={`admin.cidades.item.${cidadesList.indexOf(cidade) + 1}`}
+              >
+                <MapPin className="w-3.5 h-3.5 shrink-0 opacity-60" />
+                <span className="truncate">{cidade.nome}</span>
+                {cidade.universitaria && (
+                  <span className="ml-auto text-[9px] bg-blue-100 text-blue-600 rounded px-1 shrink-0">
+                    UNIV
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Edit form */}
+        {selectedCidade ? (
+          <div
+            className="flex-1 bg-white rounded-xl border shadow-sm overflow-y-auto"
+            style={{ maxHeight: "70vh" }}
+          >
+            <div className="p-5 border-b bg-gray-50 flex items-center justify-between">
+              <h3 className="font-semibold text-gray-800">
+                {selectedCidade.nome}
+              </h3>
+              <Button
+                onClick={handleSave}
+                className="bg-[#d7350d] hover:bg-[#c02e0c] text-white h-8 px-4 text-sm"
+                data-ocid="admin.cidades.save_button"
+              >
+                {saved ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 mr-1" /> Salvo
+                  </>
+                ) : (
+                  "Salvar alterações"
+                )}
+              </Button>
+            </div>
+            <div className="p-5 space-y-4">
+              {/* Nome */}
+              <div>
+                <Label className="text-xs text-gray-600 mb-1 block">
+                  Nome da Cidade
+                </Label>
+                <Input
+                  value={selectedCidade.nome}
+                  onChange={(e) =>
+                    updateField(selectedCidade.slug, "nome", e.target.value)
+                  }
+                  data-ocid="admin.cidades.input"
+                />
+              </div>
+
+              {/* Descrição */}
+              <div>
+                <Label className="text-xs text-gray-600 mb-1 block">
+                  Descrição
+                </Label>
+                <Textarea
+                  rows={3}
+                  value={selectedCidade.descricao}
+                  onChange={(e) =>
+                    updateField(
+                      selectedCidade.slug,
+                      "descricao",
+                      e.target.value,
+                    )
+                  }
+                  data-ocid="admin.cidades.textarea"
+                />
+              </div>
+
+              {/* Stats row */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs text-gray-600 mb-1 block">
+                    População
+                  </Label>
+                  <Input
+                    value={selectedCidade.populacao}
+                    onChange={(e) =>
+                      updateField(
+                        selectedCidade.slug,
+                        "populacao",
+                        e.target.value,
+                      )
+                    }
+                    data-ocid="admin.cidades.input"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-600 mb-1 block">
+                    PIB
+                  </Label>
+                  <Input
+                    value={selectedCidade.pib}
+                    onChange={(e) =>
+                      updateField(selectedCidade.slug, "pib", e.target.value)
+                    }
+                    data-ocid="admin.cidades.input"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-600 mb-1 block">
+                    IDHM
+                  </Label>
+                  <Input
+                    value={selectedCidade.idhm}
+                    onChange={(e) =>
+                      updateField(selectedCidade.slug, "idhm", e.target.value)
+                    }
+                    data-ocid="admin.cidades.input"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-600 mb-1 block">
+                    Área (km²)
+                  </Label>
+                  <Input
+                    value={selectedCidade.areaKm2}
+                    onChange={(e) =>
+                      updateField(
+                        selectedCidade.slug,
+                        "areaKm2",
+                        e.target.value,
+                      )
+                    }
+                    data-ocid="admin.cidades.input"
+                  />
+                </div>
+              </div>
+
+              {/* Economia */}
+              <div>
+                <Label className="text-xs text-gray-600 mb-1 block">
+                  Economia
+                </Label>
+                <Textarea
+                  rows={2}
+                  value={selectedCidade.economia}
+                  onChange={(e) =>
+                    updateField(selectedCidade.slug, "economia", e.target.value)
+                  }
+                  data-ocid="admin.cidades.textarea"
+                />
+              </div>
+
+              {/* Turismo */}
+              <div>
+                <Label className="text-xs text-gray-600 mb-1 block">
+                  Turismo (um item por linha)
+                </Label>
+                <Textarea
+                  rows={4}
+                  value={selectedCidade.turismo.join("\n")}
+                  onChange={(e) =>
+                    updateField(
+                      selectedCidade.slug,
+                      "turismo",
+                      e.target.value.split("\n").filter(Boolean),
+                    )
+                  }
+                  data-ocid="admin.cidades.textarea"
+                />
+              </div>
+
+              {/* Pontos Históricos */}
+              <div>
+                <Label className="text-xs text-gray-600 mb-1 block">
+                  Pontos Históricos (um por linha)
+                </Label>
+                <Textarea
+                  rows={3}
+                  value={selectedCidade.pontosHistoricos.join("\n")}
+                  onChange={(e) =>
+                    updateField(
+                      selectedCidade.slug,
+                      "pontosHistoricos",
+                      e.target.value.split("\n").filter(Boolean),
+                    )
+                  }
+                  data-ocid="admin.cidades.textarea"
+                />
+              </div>
+
+              {/* Gastronomia */}
+              <div>
+                <Label className="text-xs text-gray-600 mb-1 block">
+                  Gastronomia
+                </Label>
+                <Textarea
+                  rows={2}
+                  value={selectedCidade.gastronomia}
+                  onChange={(e) =>
+                    updateField(
+                      selectedCidade.slug,
+                      "gastronomia",
+                      e.target.value,
+                    )
+                  }
+                  data-ocid="admin.cidades.textarea"
+                />
+              </div>
+
+              {/* Foto */}
+              <div>
+                <Label className="text-xs text-gray-600 mb-1 block">
+                  Descrição da Foto
+                </Label>
+                <Input
+                  value={selectedCidade.fotoDescricao}
+                  onChange={(e) =>
+                    updateField(
+                      selectedCidade.slug,
+                      "fotoDescricao",
+                      e.target.value,
+                    )
+                  }
+                  data-ocid="admin.cidades.input"
+                />
+              </div>
+
+              <div>
+                <Label className="text-xs text-gray-600 mb-1 block">
+                  Foto da Cidade
+                </Label>
+                <div className="flex items-start gap-3">
+                  {selectedCidade.fotoUrl && (
+                    <img
+                      src={selectedCidade.fotoUrl}
+                      alt={selectedCidade.fotoDescricao}
+                      className="w-24 h-16 object-cover rounded-lg border"
+                    />
+                  )}
+                  <label
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-gray-300 text-sm text-gray-600 hover:border-[#d7350d] hover:text-[#d7350d] cursor-pointer transition-colors"
+                    data-ocid="admin.cidades.upload_button"
+                  >
+                    <Upload className="w-4 h-4" />
+                    {selectedCidade.fotoUrl ? "Trocar foto" : "Enviar foto"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleFotoUpload(selectedCidade.slug, e)}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* Cidade Universitária */}
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <input
+                  type="checkbox"
+                  id="universitaria-toggle"
+                  checked={selectedCidade.universitaria}
+                  onChange={(e) =>
+                    updateField(
+                      selectedCidade.slug,
+                      "universitaria",
+                      e.target.checked,
+                    )
+                  }
+                  className="w-4 h-4 accent-[#d7350d]"
+                  data-ocid="admin.cidades.checkbox"
+                />
+                <label
+                  htmlFor="universitaria-toggle"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Cidade Universitária (exibe selo na página)
+                </label>
+              </div>
+
+              {/* Universidades */}
+              {selectedCidade.universitaria && (
+                <div>
+                  <Label className="text-xs text-gray-600 mb-1 block">
+                    Universidades (uma por linha)
+                  </Label>
+                  <Textarea
+                    rows={3}
+                    value={(selectedCidade.universidades ?? []).join("\n")}
+                    onChange={(e) =>
+                      updateField(
+                        selectedCidade.slug,
+                        "universidades",
+                        e.target.value.split("\n").filter(Boolean),
+                      )
+                    }
+                    data-ocid="admin.cidades.textarea"
+                  />
+                </div>
+              )}
+
+              <div className="pt-2">
+                <Button
+                  onClick={handleSave}
+                  className="w-full bg-[#d7350d] hover:bg-[#c02e0c] text-white"
+                  data-ocid="admin.cidades.submit_button"
+                >
+                  Salvar alterações
+                </Button>
+                <p className="text-xs text-gray-400 mt-2 text-center">
+                  As alterações são salvas localmente. Para persistência
+                  permanente, exporte e aplique no código.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-gray-400">
+            <div className="text-center">
+              <MapPin className="w-10 h-10 mx-auto mb-2 opacity-30" />
+              <p>Selecione uma cidade para editar</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

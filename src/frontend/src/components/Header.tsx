@@ -1,3 +1,4 @@
+import AudioPlayer from "@/components/AudioPlayer";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
@@ -7,7 +8,7 @@ const navLinks = [
   { label: "Estatísticas", href: "#estatisticas" },
   { label: "Mercado & Trabalho", href: "#blog" },
   { label: "Mentoria", href: "#mentoria" },
-  { label: "Sobre", href: "#contato" },
+  { label: "Contato", href: "#contato" },
 ];
 
 function Logo() {
@@ -40,7 +41,7 @@ export default function Header() {
             <a
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-gray-800 hover:text-white transition-colors"
+              className="text-sm font-medium text-gray-800 hover:text-[#d7350d] transition-colors"
               data-ocid="header.link"
             >
               {link.label}
@@ -48,7 +49,8 @@ export default function Header() {
           ))}
         </nav>
 
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden md:flex items-center gap-3">
+          <AudioPlayer />
           <Button
             size="sm"
             className="bg-primary hover:bg-primary/90 text-white"
@@ -76,7 +78,7 @@ export default function Header() {
             <a
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-gray-800 hover:text-white"
+              className="text-sm font-medium text-gray-800 hover:text-[#d7350d]"
               onClick={() => setMenuOpen(false)}
               data-ocid="header.link"
             >
@@ -84,6 +86,12 @@ export default function Header() {
             </a>
           ))}
           <div className="flex flex-col gap-2 pt-2 border-t border-gray-200">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-500 font-medium">
+                Música tema
+              </span>
+              <AudioPlayer />
+            </div>
             <Button
               size="sm"
               className="bg-primary text-white"

@@ -1,30 +1,28 @@
 # Bom Dia Segunda
 
 ## Current State
-- Rodapé exibe 8 redes sociais (Instagram, Facebook, YouTube, LinkedIn, TikTok, Substack, Spotify, Kwai), nomes de cidades como links para `#vagas`
-- Header tem botão de áudio (AudioPlayer) usando localStorage para src do áudio
-- CMS tem aba `Áudio / Música` para upload de até 5 mp3
+- AudioPlayer no header usa src estático `/assets/audio/tema-bomdiasegunda.mp3`
+- CMS tem aba Imagens mas sem seção de áudio/música
+- Páginas de cidades vêm de `src/frontend/src/data/cidades.ts` com dados estáticos
+- Não existe aba "Cidades" no CMS para editar fotos e informações manualmente
 
 ## Requested Changes (Diff)
 
 ### Add
-- X (Twitter) e Threads como novas redes sociais no rodapé
-- Componente `CidadePage` — página individual para cada cidade com fotos, informações socioeconômicas e turísticas
-- Selo "CIDADE UNIVERSITÁRIA" para cidades com campus universitário (Resende, Volta Redonda, Barra Mansa, Três Rios, Vassouras, Paraíba do Sul, Valença)
-- Roteamento simples por hash `#cidade-nome-da-cidade` para abrir a página da cidade
-- Dados mockados de cada cidade: descrição, dados socioeconômicos, atrações turísticas, fotos (placeholder)
+- Copiar o arquivo MP3 enviado para `public/assets/audio/tema-bomdiasegunda.mp3` para que o AudioPlayer o reproduza
+- Adicionar tab `"audio"` no CMS (AdminPanel) com gerenciamento de até 5 arquivos MP3, seleção do ativo
+- Adicionar tab `"cidades"` no CMS com CRUD completo para editar: nome, descrição, população, PIB, IDHM, área, economia, turismo, pontos históricos, gastronomia, foto, selo universitária e lista de universidades
 
 ### Modify
-- Rodapé: links das cidades passam a abrir a página da cidade em vez de `#vagas`
-- App.tsx: adicionar rota para páginas de cidades
-- Footer: adicionar X e Threads ao array `socialLinks`
+- `AudioPlayer.tsx`: aceitar `audioSrc` dinâmico via contexto/localStorage (CMS salva o src ativo)
+- `cidades.ts`: corrigir informações incorretas conforme dados verídicos (ex: PopulaçÃo, PIB, universidades, etc.)
+- `AdminPanel.tsx`: adicionar `"audio"` e `"cidades"` aos tipos Tab e SIDEBAR_ITEMS, com renderização dos novos tabs
 
 ### Remove
-- Nada
+- Nada a remover
 
 ## Implementation Plan
-1. Atualizar `socialLinks` no Footer com X (Twitter) e Threads
-2. Criar `src/frontend/src/data/cidades.ts` com dados das cidades (nome, descrição, pontos turísticos, dados socioeconômicos, é universitária)
-3. Criar `src/frontend/src/components/CidadePage.tsx` com layout completo: banner, dados socioeconômicos, turismo, fotos, selo CIDADE UNIVERSITÁRIA condicional
-4. Atualizar `Footer.tsx` para que os links de cidades usem hash `#cidade-nome-slug`
-5. Atualizar `App.tsx` para detectar hash de cidade e renderizar `CidadePage`
+1. Copiar MP3 para `src/frontend/public/assets/audio/tema-bomdiasegunda.mp3`
+2. Corrigir dados verídicos em `cidades.ts` (populações, PIBs, universidades reais)
+3. Atualizar `AudioPlayer.tsx` para ler src do localStorage (key: `bds_audio_src`)
+4. Atualizar `AdminPanel.tsx`: adicionar tab `audio` com lista de até 5 MP3s, ativo selecionado, salvo em localStorage; adicionar tab `cidades` com lista de cidades editáveis (campos: nome, descrição, população, PIB, IDHM, área, economia, turismo[], pontosHistoricos[], gastronomia, fotoDescricao, universitária, universidades[])

@@ -13,6 +13,7 @@ export interface CidadeInfo {
   pontosHistoricos: string[];
   gastronomia: string;
   fotoDescricao: string;
+  fotoUrl?: string;
 }
 
 export const cidades: CidadeInfo[] = [
@@ -27,7 +28,7 @@ export const cidades: CidadeInfo[] = [
     idhm: "0.749",
     areaKm2: "816 km²",
     economia:
-      "Turismo náutico, estaleiros (Angra Nuclear), petróleo e gás (COMPERJ próximo), pesca artesanal e comércio local.",
+      "Turismo náutico, estaleiros (Brasfels/Jurong), terminal petrolífero da Petrobras, pesca artesanal e comércio local.",
     turismo: [
       "Ilha Grande — patrimônio natural e histórico",
       "Praia do Dentista e Praia de Araçatiba",
@@ -106,18 +107,15 @@ export const cidades: CidadeInfo[] = [
     nome: "Barra Mansa",
     slug: "barra-mansa",
     universitaria: true,
-    universidades: [
-      "UBM — Centro Universitário de Barra Mansa",
-      "Faculdade de Barra Mansa (FBM)",
-    ],
+    universidades: ["UBM — Centro Universitário de Barra Mansa"],
     descricao:
-      "Barra Mansa é uma cidade polo do Sul Fluminense, com forte base industrial e educacional. Considerada cidade universitária, abriga instituições de ensino superior de referência regional, além de um relevante setor industrial metalúrgico e de serviços.",
+      "Barra Mansa é uma cidade polo do Sul Fluminense, com forte base industrial e educacional. Considerada cidade universitária, abriga o UBM — Centro Universitário de Barra Mansa, referência regional, além de relevante setor industrial metalúrgico e cimenteiro.",
     populacao: "~180.000",
-    pib: "R$ 7,2 bilhões",
+    pib: "R$ 5,2 bilhões",
     idhm: "0.751",
     areaKm2: "540 km²",
     economia:
-      "Indústria metalúrgica, cimenteira (LafargeHolcim), serviços, educação superior e comércio regional.",
+      "Indústria metalúrgica, cimenteira (LafargeHolcim), CSN Parafusos, indústria diversificada, serviços e comércio regional.",
     turismo: [
       "Zoológico Municipal de Barra Mansa",
       "Parque das Águas",
@@ -213,7 +211,7 @@ export const cidades: CidadeInfo[] = [
     ],
     pontosHistoricos: [
       "Parque Nacional do Itatiaia — 1° parque nacional do Brasil (1937)",
-      "Museu do Ipiranga no parque nacional",
+      "Museu do Parque Nacional do Itatiaia",
       "Casa do Pesquisador do IBDF",
     ],
     gastronomia:
@@ -283,14 +281,14 @@ export const cidades: CidadeInfo[] = [
     slug: "paracambi",
     universitaria: false,
     descricao:
-      "Paracambi é um município industrial do Sul Fluminense com forte tradição têxtil. A cidade abriga o Parque Estadual da Serra do Tiririca nas suas proximidades e tem importante papel na economia regional.",
+      "Paracambi é um município industrial do Sul Fluminense com forte tradição têxtil. A cidade tem importante papel na economia regional e está próxima ao Parque Estadual do Cunhambebe, área de preservação da Mata Atlântica.",
     populacao: "~50.000",
     pib: "R$ 1,5 bilhões",
     idhm: "0.728",
     areaKm2: "179 km²",
     economia: "Indústria têxtil, metalurgia, comércio regional e serviços.",
     turismo: [
-      "Parque Estadual da Serra do Tiririca",
+      "Parque Estadual do Cunhambebe (área de preservação próxima)",
       "Rio Paraíba do Sul",
       "Cachoeiras locais",
       "Usina Hidrelétrica Paracambi",
@@ -308,16 +306,14 @@ export const cidades: CidadeInfo[] = [
   {
     nome: "Paraíba do Sul",
     slug: "paraiba-do-sul",
-    universitaria: true,
-    universidades: ["Faculdade de Paraíba do Sul (FAPS)"],
+    universitaria: false,
     descricao:
-      "Paraíba do Sul é uma cidade histórica às margens do rio que lhe dá nome. Com forte ligação ao período imperial e ao ciclo cafeeiro, a cidade tem hoje educação superior, comércio regional e preserva importante patrimônio histórico.",
+      "Paraíba do Sul é uma cidade histórica às margens do rio que lhe dá nome. Com forte ligação ao período imperial e ao ciclo cafeeiro, a cidade preserva importante patrimônio histórico e conta com comércio regional ativo.",
     populacao: "~42.000",
     pib: "R$ 1,3 bilhões",
     idhm: "0.720",
     areaKm2: "590 km²",
-    economia:
-      "Agropecuária, indústria de alimentos, comércio e serviços educacionais.",
+    economia: "Agropecuária, indústria de alimentos, comércio e serviços.",
     turismo: [
       "Rio Paraíba do Sul — navegação e pesca",
       "Fazendas históricas do período imperial",
@@ -451,15 +447,15 @@ export const cidades: CidadeInfo[] = [
     slug: "porto-real",
     universitaria: false,
     descricao:
-      "Porto Real é um dos municípios mais jovens do Sul Fluminense, emancipado em 1997. Destaca-se pelo polo automobilístico com a fábrica Peugeot-Citroën, sendo um importante gerador de empregos industriais na região.",
+      "Porto Real é um dos municípios mais jovens do Sul Fluminense, emancipado em 1997. Destaca-se pelo polo automobilístico com a fábrica da Stellantis (ex-PSA Peugeot Citroën), sendo um importante gerador de empregos industriais na região.",
     populacao: "~18.000",
     pib: "R$ 5,2 bilhões",
     idhm: "0.740",
     areaKm2: "55 km²",
     economia:
-      "Indústria automobilística (Peugeot-Citroën — Stellantis), fornecedores do setor automotivo e serviços.",
+      "Indústria automobilística (Stellantis — Peugeot Citroën), fornecedores do setor automotivo e serviços.",
     turismo: [
-      "Fábrica da Stellantis (Peugeot-Citroën) — visitas técnicas",
+      "Complexo industrial da Stellantis — visitas técnicas",
       "Rio Paraíba do Sul",
       "Eventos do polo industrial",
     ],
@@ -501,8 +497,7 @@ export const cidades: CidadeInfo[] = [
     universitaria: true,
     universidades: [
       "AEDB — Associação de Ensino de Resende",
-      "UNIFOA — Campus Resende",
-      "UFF — Universidade Federal Fluminense (campus)",
+      "UFF — Universidade Federal Fluminense (campus Resende — engenharias)",
     ],
     descricao:
       "Resende é um dos principais polos industriais e educacionais do Sul Fluminense. Sede da Academia Militar das Agulhas Negras (AMAN), a mais importante escola militar do Brasil, a cidade combina tradição militar, ensino superior de qualidade e rica natureza.",
@@ -511,7 +506,7 @@ export const cidades: CidadeInfo[] = [
     idhm: "0.753",
     areaKm2: "1.163 km²",
     economia:
-      "Petroquímica (Comperj-adjacente), automobilística (CSN), indústria diversificada, educação superior e turismo militar.",
+      "CSN Aços Especiais, polo petroquímico (Braskem), indústria diversificada, educação superior e turismo ecológico e militar.",
     turismo: [
       "Academia Militar das Agulhas Negras (AMAN)",
       "Parque Nacional do Itatiaia — acesso sul",
@@ -615,12 +610,9 @@ export const cidades: CidadeInfo[] = [
     nome: "Três Rios",
     slug: "tres-rios",
     universitaria: true,
-    universidades: [
-      "CESVA/FAA — Centro de Ensino Superior de Valença",
-      "Faculdade Três Rios (FTR)",
-    ],
+    universidades: ["Faculdade Três Rios (FTR)"],
     descricao:
-      "Três Rios recebeu este nome pela confluência de três rios: Paraíba do Sul, Paraibuna e Piabanha. Importante polo regional com vocação educacional, a cidade abriga faculdades e é referência em serviços e comércio no Vale do Paraíba.",
+      "Três Rios recebeu este nome pela confluência de três rios: Paraíba do Sul, Paraibuna e Piabanha. Importante polo regional com vocação educacional, a cidade é referência em serviços e comércio no Vale do Paraíba.",
     populacao: "~80.000",
     pib: "R$ 2,8 bilhões",
     idhm: "0.748",
@@ -648,12 +640,13 @@ export const cidades: CidadeInfo[] = [
     slug: "valenca",
     universitaria: true,
     universidades: [
+      "FAA — Faculdade de Medicina de Valença",
       "FEVE — Faculdade de Engenharia de Valença",
-      "Faculdade de Ciências da Saúde de Valença (FACS)",
+      "FACS — Faculdade de Ciências da Saúde de Valença",
     ],
     descricao:
       "Valença é uma das mais tradicionais cidades históricas do Sul Fluminense. Com riquíssimo patrimônio arquitetônico do ciclo cafeeiro, mansões imperiais e teatro histórico, é considerada um dos maiores acervos do Brasil imperial.",
-    populacao: "~72.000",
+    populacao: "~76.000",
     pib: "R$ 2,1 bilhões",
     idhm: "0.730",
     areaKm2: "1.306 km²",
@@ -685,7 +678,7 @@ export const cidades: CidadeInfo[] = [
       "USS — Universidade de Vassouras (reconhecida pelo curso de Medicina)",
     ],
     descricao:
-      "Vassouras é conhecida como a 'Capital Imperialista' do Brasil, pela riqueza de fazendas e casarões do Segundo Reinado. Cidade universitária de prestígio nacional, abriga a Universidade de Vassouras, famosa pelo curso de Medicina, e preserva o maior conjunto arquitetônico imperial do país.",
+      "Vassouras é conhecida como a 'Capital do Café' do Brasil imperial, pela riqueza de fazendas e casarões do Segundo Reinado. Cidade universitária de prestígio nacional, abriga a Universidade de Vassouras, famosa pelo curso de Medicina, e preserva o maior conjunto arquitetônico imperial do país.",
     populacao: "~35.000",
     pib: "R$ 1,1 bilhões",
     idhm: "0.735",
@@ -715,10 +708,8 @@ export const cidades: CidadeInfo[] = [
     slug: "volta-redonda",
     universitaria: true,
     universidades: [
-      "UNIFOA — Centro Universitário de Volta Redonda (sede)",
+      "UNIFOA — Centro Universitário de Volta Redonda (sede principal)",
       "UGB — Centro Universitário Geraldo Di Biase",
-      "UERJ — Universidade Estadual do Rio de Janeiro (campus)",
-      "UniFOA — faculdades diversas",
     ],
     descricao:
       "Volta Redonda é a maior cidade do Sul Fluminense e o maior polo industrial e educacional da região. Conhecida como 'Cidade do Aço' pela Companhia Siderúrgica Nacional (CSN), a cidade combina tradição industrial com moderna rede universitária e infraestrutura de serviços.",
