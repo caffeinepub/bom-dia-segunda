@@ -261,7 +261,7 @@ export default function Vagas({
   const [jobs, setJobs] = useState<Job[]>(JOBS);
   const [selectedCity, setSelectedCity] = useState(initialCity);
   const [selectedType, setSelectedType] = useState("Todos");
-  const [visibleCount, setVisibleCount] = useState(9);
+  const [visibleCount, setVisibleCount] = useState(12);
 
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [cvFileName, setCvFileName] = useState("");
@@ -609,7 +609,7 @@ export default function Vagas({
             <Button
               variant="outline"
               className="border-[#d7350d] text-[#d7350d] hover:bg-[#d7350d] hover:text-white px-8"
-              onClick={() => setVisibleCount((c) => c + 9)}
+              onClick={() => setVisibleCount((c) => c + 12)}
               data-ocid="vagas.pagination_next"
             >
               Carregar mais vagas ({filtered.length - visibleCount} restantes)
@@ -620,7 +620,7 @@ export default function Vagas({
         <div className="text-center mt-6">
           <Button
             className="bg-[#d7350d] text-white hover:bg-[#b82d0b] px-10 py-3 text-base font-semibold rounded-full shadow"
-            onClick={() => setVisibleCount((c) => c + 9)}
+            onClick={() => setVisibleCount((c) => c + 12)}
           >
             Ver mais vagas
           </Button>

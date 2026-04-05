@@ -2,6 +2,7 @@ import Avaliador from "@/components/Avaliador";
 import Blog from "@/components/Blog";
 import BlogPostPage from "@/components/BlogPostPage";
 import CidadePage from "@/components/CidadePage";
+import Concursos from "@/components/Concursos";
 import Contato from "@/components/Contato";
 import Depoimentos from "@/components/Depoimentos";
 import Estatisticas from "@/components/Estatisticas";
@@ -162,6 +163,7 @@ export default function App() {
         />
         <Mentoria onInscricao={() => setShowMentoriaInscricao(true)} />
         <Loja onViewProduct={(id) => setProductId(id)} />
+        <Concursos />
         <Blog onReadPost={(id) => setBlogPostId(id)} />
         <Depoimentos />
         <Contato />
