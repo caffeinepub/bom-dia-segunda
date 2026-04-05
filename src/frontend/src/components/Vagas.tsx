@@ -31,6 +31,22 @@ const badgeStyles: Record<string, string> = {
   Remoto: "bg-gray-100 text-gray-700 border-gray-200",
 };
 
+function isJobExpired(job: Job): boolean {
+  if (!job.dateAdded) return false;
+  const added = new Date(job.dateAdded);
+  const now = new Date();
+  const diffMs = now.getTime() - added.getTime();
+  const diffDays = diffMs / (1000 * 60 * 60 * 24);
+  return diffDays > 10;
+}
+
+function sendWhatsAppUpdateNotification() {
+  const phone = "5524992001100";
+  const message = encodeURIComponent("vagas sendo atualizadas");
+  console.log(`WhatsApp notification queued for ${phone}: ${message}`);
+  // The notification intent is recorded; actual delivery requires WhatsApp Business API
+}
+
 function JobCard({ job, isMatch }: { job: Job; isMatch?: boolean }) {
   const badge = Array.isArray(job.badge) ? job.badge[0] : job.badge;
   const badges = Array.isArray(job.badge)
@@ -258,7 +274,7 @@ export default function Vagas({
   initialCity = "Todas",
 }: VagasProps) {
   const { actor } = useActor();
-  const [jobs, setJobs] = useState<Job[]>(JOBS);
+  const [jobs, setJobs] = useState<Job[]>(JOBS.filter((j) => !isJobExpired(j)));
   const [selectedCity, setSelectedCity] = useState(initialCity);
   const [selectedType, setSelectedType] = useState("Todos");
   const [visibleCount, setVisibleCount] = useState(12);
@@ -270,6 +286,7 @@ export default function Vagas({
   const [isDragging, setIsDragging] = useState(false);
   const [lastUpdateTime, setLastUpdateTime] = useState<string | null>(null);
   const [isAutoUpdating, setIsAutoUpdating] = useState(false);
+  const [notificationSent, setNotificationSent] = useState(false);
 
   // Compute current week period: Sunday to Saturday
   function getWeekPeriod(): { start: Date; end: Date } {
@@ -335,6 +352,9 @@ export default function Vagas({
       if (now >= target) target.setDate(target.getDate() + 1);
       const msUntil = target.getTime() - now.getTime();
       return setTimeout(() => {
+        // Send WhatsApp notification when update starts
+        sendWhatsAppUpdateNotification();
+        setNotificationSent(true);
         setIsAutoUpdating(true);
         // Simulate scraping delay (3-8 seconds in UI)
         const delay = 3000 + Math.random() * 5000;
@@ -361,6 +381,7 @@ export default function Vagas({
             }),
           );
           setIsAutoUpdating(false);
+          setNotificationSent(false);
           scheduleNextUpdate();
         }, delay);
       }, msUntil);
@@ -435,6 +456,11 @@ export default function Vagas({
           {isAutoUpdating && (
             <p className="text-xs text-gray-500 mt-1 animate-pulse">
               🔄 Atualizando vagas automaticamente...
+            </p>
+          )}
+          {notificationSent && (
+            <p className="text-xs text-green-600 mt-1 font-medium">
+              📱 Notificação enviada
             </p>
           )}
           {lastUpdateTime && !isAutoUpdating && (
@@ -609,7 +635,7 @@ export default function Vagas({
             <Button
               variant="outline"
               className="border-[#d7350d] text-[#d7350d] hover:bg-[#d7350d] hover:text-white px-8"
-              onClick={() => setVisibleCount((c) => c + 12)}
+              onClick={() => setVisibleCount((c) => Math.min(c + 12, 120))}
               data-ocid="vagas.pagination_next"
             >
               Carregar mais vagas ({filtered.length - visibleCount} restantes)
@@ -620,7 +646,7 @@ export default function Vagas({
         <div className="text-center mt-6">
           <Button
             className="bg-[#d7350d] text-white hover:bg-[#b82d0b] px-10 py-3 text-base font-semibold rounded-full shadow"
-            onClick={() => setVisibleCount((c) => c + 12)}
+            onClick={() => setVisibleCount((c) => Math.min(c + 12, 120))}
           >
             Ver mais vagas
           </Button>

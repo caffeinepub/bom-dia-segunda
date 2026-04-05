@@ -7,6 +7,7 @@ const navLinks = [
   { label: "Encontrar Vagas", href: "#vagas" },
   { label: "Estatísticas", href: "#estatisticas" },
   { label: "Mercado & Trabalho", href: "#blog" },
+  { label: "Concursos", href: "#concursos" },
   { label: "Mentoria", href: "#mentoria" },
   { label: "Contato", href: "#contato" },
 ];

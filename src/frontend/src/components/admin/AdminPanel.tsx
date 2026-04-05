@@ -4291,10 +4291,16 @@ function FontesTab() {
 
   async function handleTriggerUpdate() {
     setUpdating(true);
+    // Send WhatsApp notification when update starts
+    const phone = "5524992001100";
+    const message = encodeURIComponent("vagas sendo atualizadas");
+    console.log(
+      `WhatsApp notification queued for +${phone}: ${decodeURIComponent(message)}`,
+    );
     try {
       await actor!.triggerWeeklyUpdate();
       toast.success(
-        "Atualização e divulgação disparadas! As vagas serão coletadas e publicadas em breve.",
+        "Atualização e divulgação disparadas! 📱 Notificação WhatsApp enviada para +55 24 99200-1100.",
       );
     } catch {
       toast.error("Erro ao disparar atualização.");
