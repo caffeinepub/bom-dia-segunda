@@ -1,3 +1,4 @@
+import { JOBS } from "@/data/mockData";
 import {
   Accessibility,
   GraduationCap,
@@ -7,10 +8,102 @@ import {
   Users,
 } from "lucide-react";
 
+// ─── Derived statistics from real JOBS data ────────────────────────────────
+
+const totalVagas = JOBS.length;
+
+const vagasEfetivas = JOBS.filter((j) => j.type === "Efetiva").length;
+
+const vagasPCD = JOBS.filter(
+  (j) => j.type === "PCD" || j.badge === "PCD",
+).length;
+
+const vagasSuperior = JOBS.filter((j) => j.education === "Superior").length;
+const pctSuperior = Math.round((vagasSuperior / totalVagas) * 100);
+
+// Education distribution
+const educationCounts: Record<string, number> = {};
+for (const job of JOBS) {
+  const edu = job.education ?? "Não informado";
+  educationCounts[edu] = (educationCounts[edu] ?? 0) + 1;
+}
+const educationData = Object.entries(educationCounts)
+  .sort((a, b) => b[1] - a[1])
+  .map(([label, count], i) => {
+    const pct = Math.round((count / totalVagas) * 100);
+    const colors = [
+      "bg-[#d7350d]",
+      "bg-blue-400",
+      "bg-yellow-500",
+      "bg-purple-500",
+      "bg-green-500",
+    ];
+    return { label, pct, color: colors[i % colors.length] };
+  });
+
+// Modality/type distribution
+const typeCounts: Record<string, number> = {};
+for (const job of JOBS) {
+  typeCounts[job.type] = (typeCounts[job.type] ?? 0) + 1;
+}
+const modalityData = Object.entries(typeCounts)
+  .sort((a, b) => b[1] - a[1])
+  .map(([label, count], i) => {
+    const pct = Math.round((count / totalVagas) * 100);
+    const colors = [
+      "bg-[#d7350d]",
+      "bg-blue-500",
+      "bg-yellow-500",
+      "bg-purple-500",
+      "bg-green-500",
+      "bg-gray-500",
+    ];
+    return { label, pct, color: colors[i % colors.length] };
+  });
+
+// Vagas por cidade — top 8
+const cityCounts: Record<string, number> = {};
+for (const job of JOBS) {
+  cityCounts[job.city] = (cityCounts[job.city] ?? 0) + 1;
+}
+const vagasPorCidade = Object.entries(cityCounts)
+  .sort((a, b) => b[1] - a[1])
+  .slice(0, 8)
+  .map(([city, count]) => ({ city, count }));
+const maxCidade = Math.max(...vagasPorCidade.map((c) => c.count));
+
+// Top skills
+const SOFT_SKILL_KEYWORDS = [
+  "comunicação",
+  "atendimento",
+  "organização",
+  "trabalho em equipe",
+  "negociação",
+  "proatividade",
+  "liderança",
+  "adaptabilidade",
+];
+const skillFreq: Record<string, number> = {};
+for (const job of JOBS) {
+  for (const s of job.skills ?? []) {
+    skillFreq[s] = (skillFreq[s] ?? 0) + 1;
+  }
+}
+const allSkillsSorted = Object.entries(skillFreq).sort((a, b) => b[1] - a[1]);
+const softSkills = allSkillsSorted
+  .filter(([s]) => SOFT_SKILL_KEYWORDS.some((k) => s.includes(k)))
+  .slice(0, 5)
+  .map(([skill, count]) => ({ skill, count }));
+const hardSkills = allSkillsSorted
+  .filter(([s]) => !SOFT_SKILL_KEYWORDS.some((k) => s.includes(k)))
+  .slice(0, 5)
+  .map(([skill, count]) => ({ skill, count }));
+
+// Stat cards
 const stats = [
   {
     icon: Users,
-    value: "247",
+    value: String(totalVagas),
     label: "Vagas Disponíveis",
     trend: "+12%",
     up: true,
@@ -18,7 +111,7 @@ const stats = [
   },
   {
     icon: TrendingUp,
-    value: "189",
+    value: String(vagasEfetivas),
     label: "Vagas Efetivas (CLT)",
     trend: "+8%",
     up: true,
@@ -26,7 +119,7 @@ const stats = [
   },
   {
     icon: GraduationCap,
-    value: "43%",
+    value: `${pctSuperior}%`,
     label: "Exigem Ensino Superior",
     trend: "estável",
     up: false,
@@ -34,59 +127,13 @@ const stats = [
   },
   {
     icon: Accessibility,
-    value: "28",
+    value: String(vagasPCD),
     label: "Vagas PCD",
     trend: "+15%",
     up: true,
     stable: false,
   },
 ];
-
-const educationData = [
-  { label: "Ensino Fundamental", pct: 8, color: "bg-blue-400" },
-  { label: "Ensino Médio", pct: 32, color: "bg-[#d7350d]" },
-  { label: "Ensino Técnico", pct: 20, color: "bg-yellow-500" },
-  { label: "Graduação", pct: 28, color: "bg-purple-500" },
-  { label: "Pós-graduação", pct: 12, color: "bg-green-500" },
-];
-
-const modalityData = [
-  { label: "Efetiva", pct: 40, color: "bg-[#d7350d]" },
-  { label: "Temporária", pct: 20, color: "bg-blue-500" },
-  { label: "Estágio", pct: 18, color: "bg-yellow-500" },
-  { label: "Menor Aprendiz", pct: 10, color: "bg-purple-500" },
-  { label: "Remota", pct: 8, color: "bg-green-500" },
-  { label: "PCD", pct: 4, color: "bg-gray-500" },
-];
-
-const softSkills = [
-  { skill: "Comunicação", count: 142 },
-  { skill: "Trabalho em equipe", count: 128 },
-  { skill: "Proatividade", count: 115 },
-  { skill: "Organização", count: 98 },
-  { skill: "Adaptabilidade", count: 87 },
-];
-
-const hardSkills = [
-  { skill: "Pacote Office", count: 134 },
-  { skill: "Excel Avançado", count: 96 },
-  { skill: "Habilitação CNH B", count: 88 },
-  { skill: "Inglês básico", count: 74 },
-  { skill: "SAP / ERP", count: 61 },
-];
-
-const vagasPorCidade = [
-  { city: "Resende", count: 62 },
-  { city: "Barra Mansa", count: 48 },
-  { city: "Volta Redonda", count: 41 },
-  { city: "Angra dos Reis", count: 29 },
-  { city: "Valença", count: 24 },
-  { city: "Três Rios", count: 18 },
-  { city: "Itatiaia", count: 15 },
-  { city: "Porto Real", count: 10 },
-];
-
-const maxCidade = Math.max(...vagasPorCidade.map((c) => c.count));
 
 export default function Estatisticas() {
   return (
@@ -101,7 +148,11 @@ export default function Estatisticas() {
             O MERCADO EM NÚMEROS
           </h2>
           <p className="text-muted-foreground">
-            Dados atualizados para a semana de{" "}
+            Dados baseados nas{" "}
+            <span className="font-semibold text-[#d7350d]">
+              {totalVagas} vagas
+            </span>{" "}
+            disponíveis na plataforma —{" "}
             {new Date().toLocaleDateString("pt-BR", {
               day: "2-digit",
               month: "long",

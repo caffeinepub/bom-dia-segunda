@@ -1,5 +1,6 @@
 import Avaliador from "@/components/Avaliador";
 import Blog from "@/components/Blog";
+import Concursos from "@/components/Concursos";
 import Contato from "@/components/Contato";
 import Depoimentos from "@/components/Depoimentos";
 import Estatisticas from "@/components/Estatisticas";
@@ -50,6 +51,7 @@ export default function App() {
         <Estatisticas />
         <Avaliador />
         <Loja />
+        <Concursos />
         <Blog />
         <Depoimentos />
         <Mentoria />
