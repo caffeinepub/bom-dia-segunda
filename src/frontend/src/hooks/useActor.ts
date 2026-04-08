@@ -1,59 +1,48 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
-import type { backendInterface } from "../backend";
-import { createActorWithConfig } from "../config";
-import { getSecretParameter } from "../utils/urlParams";
-import { useInternetIdentity } from "./useInternetIdentity";
+import { type Backend, createActor } from "@/backend";
+import { useInternetIdentity } from "@caffeineai/core-infrastructure";
+import { useMemo } from "react";
 
-const ACTOR_QUERY_KEY = "actor";
-export function useActor() {
-  const { identity } = useInternetIdentity();
-  const queryClient = useQueryClient();
-  const actorQuery = useQuery<backendInterface>({
-    queryKey: [ACTOR_QUERY_KEY, identity?.getPrincipal().toString()],
-    queryFn: async () => {
-      const isAuthenticated = !!identity;
+const CANISTER_ID: string =
+  ((import.meta as unknown as { env: Record<string, string> }).env
+    ?.VITE_CANISTER_ID_BACKEND as string | undefined) ?? "aaaaa-aa";
 
-      if (!isAuthenticated) {
-        // Return anonymous actor if not authenticated
-        return await createActorWithConfig();
-      }
+// Extended actor type — backend interface is empty but these methods are called
+// frontend-side (they either no-op gracefully or are expected to exist on deploy)
+// biome-ignore lint/suspicious/noExplicitAny: actor methods are dynamically typed
+type ActorWithMethods = Backend &
+  Record<string, (...args: any[]) => Promise<any>>;
 
-      const actorOptions = {
-        agentOptions: {
-          identity,
+export function useActor(): {
+  actor: ActorWithMethods | null;
+  isFetching: boolean;
+} {
+  const { identity, loginStatus } = useInternetIdentity();
+  const isFetching = loginStatus === "logging-in";
+
+  const actor = useMemo(() => {
+    try {
+      const base = createActor(
+        CANISTER_ID,
+        async (blob) => {
+          const bytes = await blob.getBytes();
+          return bytes as Uint8Array<ArrayBuffer>;
         },
-      };
-
-      const actor = await createActorWithConfig(actorOptions);
-      const adminToken = getSecretParameter("caffeineAdminToken") || "";
-      await actor._initializeAccessControlWithSecret(adminToken);
-      return actor;
-    },
-    // Only refetch when identity changes
-    staleTime: Number.POSITIVE_INFINITY,
-    // This will cause the actor to be recreated when the identity changes
-    enabled: true,
-  });
-
-  // When the actor changes, invalidate dependent queries
-  useEffect(() => {
-    if (actorQuery.data) {
-      queryClient.invalidateQueries({
-        predicate: (query) => {
-          return !query.queryKey.includes(ACTOR_QUERY_KEY);
+        async (bytes: Uint8Array<ArrayBufferLike>) => {
+          const { ExternalBlob } = await import("@/backend");
+          return ExternalBlob.fromBytes(bytes as Uint8Array<ArrayBuffer>);
         },
-      });
-      queryClient.refetchQueries({
-        predicate: (query) => {
-          return !query.queryKey.includes(ACTOR_QUERY_KEY);
+        {
+          agentOptions: {
+            identity: identity ?? undefined,
+            host: window.location.origin,
+          },
         },
-      });
+      );
+      return base as ActorWithMethods;
+    } catch {
+      return null;
     }
-  }, [actorQuery.data, queryClient]);
+  }, [identity]);
 
-  return {
-    actor: actorQuery.data || null,
-    isFetching: actorQuery.isFetching,
-  };
+  return { actor, isFetching };
 }

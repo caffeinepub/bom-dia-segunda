@@ -3,27 +3,53 @@ import Principal "mo:core/Principal";
 import Time "mo:core/Time";
 import Float "mo:core/Float";
 import Map "mo:core/Map";
-import List "mo:core/List";
 import Iter "mo:core/Iter";
-
-import AccessControl "authorization/access-control";
-import MixinAuthorization "authorization/MixinAuthorization";
-import MixinStorage "blob-storage/Mixin";
 
 
 
 actor {
-  // Persistent actor state for access control
-  let accessControlState = AccessControl.initState();
-  include MixinAuthorization(accessControlState);
-  include MixinStorage();
+  // ============================
+  // Simple Admin Management
+  // ============================
+  let adminMap = Map.empty<Principal, Bool>();
+  var firstLogin = true;
+
+  public query ({ caller }) func isCallerAdmin() : async Bool {
+    isAdmin(caller)
+  };
+
+  public shared ({ caller }) func registerAdmin(user : Principal) : async () {
+    if (not isAdmin(caller)) {
+      Runtime.trap("Unauthorized: Only admins can register other admins");
+    };
+    adminMap.add(user, true);
+  };
+
+  public shared ({ caller }) func initialize() : async () {
+    if (firstLogin) {
+      firstLogin := false;
+      adminMap.add(caller, true);
+    };
+  };
+
+  private func isAdmin(p : Principal) : Bool {
+    if (p.isAnonymous()) return false;
+    if (firstLogin) {
+      firstLogin := false;
+      adminMap.add(p, true);
+      return true;
+    };
+    switch (adminMap.get(p)) {
+      case (?true) { true };
+      case _ { false };
+    };
+  };
 
   // ============================
   // Data Structures
   // ============================
   public type UserProfile = {
     name : Text;
-    // Additional user-specific fields can be added here.
   };
 
   public type Resume = {
@@ -42,13 +68,6 @@ actor {
     createdAt : Int;
     reportRequested : Bool;
     pdfGenerated : Bool;
-    // Add more scoring for various aspects (experience, education, design, etc)
-    // Add extracted facts from the resume (name, emails, phone, whatsapp, etc)
-    // Add suggested improvements and tips
-    // Add skills extraction and evaluation (hard, soft, technical, etc)
-    // Add ATS compatibility scoring
-    // Add AI evalued summary and recommendations
-    // Add language-related analysis (spelling, grammar, clarity, etc)
   };
 
   public type JobListing = {
@@ -134,23 +153,14 @@ actor {
   // User Profile Functions
   // ============================
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only registered users can access this functionality");
-    };
     userProfiles.get(caller);
   };
 
-  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    if (caller != user and not (AccessControl.isAdmin(accessControlState, caller))) {
-      Runtime.trap("Unauthorized: You can only view your own profile");
-    };
+  public query func getUserProfile(user : Principal) : async ?UserProfile {
     userProfiles.get(user);
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only registered users can save profiles");
-    };
     userProfiles.add(caller, profile);
   };
 
@@ -158,28 +168,19 @@ actor {
   // Resume Functions
   // ============================
   public shared ({ caller }) func saveResume(resume : Resume) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only registered users can save resumes");
-    };
     let newResume = { resume with userId = caller };
     resumes.add(resume.id, newResume);
   };
 
   public query ({ caller }) func getMyResumes() : async [Resume] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only registered users can view resumes");
-    };
     resumes.values().toArray().filter(func(r) { r.userId == caller });
   };
 
   public shared ({ caller }) func requestReport(resumeId : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only registered users can request reports");
-    };
     switch (resumes.get(resumeId)) {
       case (null) { Runtime.trap("Resume not found") };
       case (?resume) {
-        if (resume.userId != caller) {
+        if (resume.userId != caller and not isAdmin(caller)) {
           Runtime.trap("Unauthorized: You can only request reports for your own resumes");
         };
         let updatedResume = { resume with reportRequested = true : Bool };
@@ -189,14 +190,14 @@ actor {
   };
 
   public query ({ caller }) func getAllResumes() : async [Resume] {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdmin(caller)) {
       Runtime.trap("Unauthorized: Only admins can view all resumes");
     };
     resumes.values().toArray();
   };
 
   public shared ({ caller }) func updateResumeReportStatus(resumeId : Text, pdfGenerated : Bool) : async () {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdmin(caller)) {
       Runtime.trap("Unauthorized: Only admins can update report status");
     };
     switch (resumes.get(resumeId)) {
@@ -219,7 +220,7 @@ actor {
   };
 
   public shared ({ caller }) func addVaga(job : JobListing) : async () {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdmin(caller)) {
       Runtime.trap("Unauthorized: Only admins can add job listings");
     };
     let newJob = { job with postedAt = Time.now() };
@@ -227,7 +228,7 @@ actor {
   };
 
   public shared ({ caller }) func deleteExpiredVagas() : async Nat {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdmin(caller)) {
       Runtime.trap("Unauthorized: Only admins can delete expired job listings");
     };
     let now = Time.now();
@@ -240,7 +241,7 @@ actor {
   };
 
   public shared ({ caller }) func triggerWeeklyUpdate() : async () {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdmin(caller)) {
       Runtime.trap("Unauthorized: Only admins can trigger updates");
     };
     let _ = await deleteExpiredVagas();
@@ -255,7 +256,7 @@ actor {
   // Blog Post Functions
   // ============================
   public shared ({ caller }) func addBlogPost(post : BlogPost) : async () {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdmin(caller)) {
       Runtime.trap("Unauthorized: Only admins can add blog posts");
     };
     let newPost = { post with createdAt = Time.now(); updatedAt = Time.now() };
@@ -263,7 +264,7 @@ actor {
   };
 
   public shared ({ caller }) func updateBlogPost(post : BlogPost) : async () {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdmin(caller)) {
       Runtime.trap("Unauthorized: Only admins can update blog posts");
     };
     let updatedPost = { post with updatedAt = Time.now() };
@@ -271,14 +272,14 @@ actor {
   };
 
   public shared ({ caller }) func deleteBlogPost(id : Text) : async () {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdmin(caller)) {
       Runtime.trap("Unauthorized: Only admins can delete blog posts");
     };
     blogPosts.remove(id);
   };
 
   public query ({ caller }) func getAllBlogPosts() : async [BlogPost] {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdmin(caller)) {
       Runtime.trap("Unauthorized: Only admins can view all blog posts");
     };
     blogPosts.values().toArray();
@@ -296,12 +297,13 @@ actor {
   // Testimonial Functions
   // ============================
   public shared ({ caller }) func submitTestimonial(testimonial : Testimonial) : async () {
+    let _ = caller;
     let newTestimonial = { testimonial with approved = false };
     testimonials.add(testimonial.id, newTestimonial);
   };
 
   public shared ({ caller }) func approveTestimonial(id : Text) : async () {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdmin(caller)) {
       Runtime.trap("Unauthorized: Only admins can approve testimonials");
     };
     switch (testimonials.get(id)) {
@@ -313,18 +315,18 @@ actor {
   };
 
   public shared ({ caller }) func deleteTestimonial(id : Text) : async () {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdmin(caller)) {
       Runtime.trap("Unauthorized: Only admins can delete testimonials");
     };
     testimonials.remove(id);
   };
 
-  public query ({ caller }) func getApprovedTestimonials() : async [Testimonial] {
+  public query func getApprovedTestimonials() : async [Testimonial] {
     testimonials.values().toArray().filter(func(t) { t.approved });
   };
 
   public query ({ caller }) func getAllTestimonials() : async [Testimonial] {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdmin(caller)) {
       Runtime.trap("Unauthorized: Only admins can view all testimonials");
     };
     testimonials.values().toArray();
@@ -334,7 +336,7 @@ actor {
   // Product Functions
   // ============================
   public shared ({ caller }) func addProduct(product : Product) : async () {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdmin(caller)) {
       Runtime.trap("Unauthorized: Only admins can add products");
     };
     let newProduct = { product with createdAt = Time.now() };
@@ -342,14 +344,14 @@ actor {
   };
 
   public shared ({ caller }) func updateProduct(product : Product) : async () {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdmin(caller)) {
       Runtime.trap("Unauthorized: Only admins can update products");
     };
     products.add(product.id, product);
   };
 
   public shared ({ caller }) func deleteProduct(id : Text) : async () {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdmin(caller)) {
       Runtime.trap("Unauthorized: Only admins can delete products");
     };
     products.remove(id);
@@ -360,7 +362,7 @@ actor {
   };
 
   public query ({ caller }) func getAllProducts() : async [Product] {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdmin(caller)) {
       Runtime.trap("Unauthorized: Only admins can view all products");
     };
     products.values().toArray();
@@ -370,7 +372,7 @@ actor {
   // Job Source Functions
   // ============================
   public shared ({ caller }) func addJobSource(source : JobSource) : async () {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdmin(caller)) {
       Runtime.trap("Unauthorized: Only admins can add job sources");
     };
     let newSource = { source with createdAt = Time.now() };
@@ -378,28 +380,28 @@ actor {
   };
 
   public shared ({ caller }) func updateJobSource(source : JobSource) : async () {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdmin(caller)) {
       Runtime.trap("Unauthorized: Only admins can update job sources");
     };
     jobSources.add(source.id, source);
   };
 
   public shared ({ caller }) func deleteJobSource(id : Text) : async () {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdmin(caller)) {
       Runtime.trap("Unauthorized: Only admins can delete job sources");
     };
     jobSources.remove(id);
   };
 
   public query ({ caller }) func getJobSources() : async [JobSource] {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdmin(caller)) {
       Runtime.trap("Unauthorized: Only admins can view job sources");
     };
     jobSources.values().toArray();
   };
 
   public query ({ caller }) func getActiveJobSources() : async [JobSource] {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdmin(caller)) {
       Runtime.trap("Unauthorized: Only admins can view job sources");
     };
     jobSources.values().toArray().filter(func(s) { s.active });
@@ -409,14 +411,14 @@ actor {
   // Payment Config Functions
   // ============================
   public shared ({ caller }) func savePaymentConfig(config : PaymentConfig) : async () {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdmin(caller)) {
       Runtime.trap("Unauthorized: Only admins can save payment config");
     };
     paymentConfig := ?{ config with updatedAt = Time.now() };
   };
 
   public query ({ caller }) func getPaymentConfig() : async ?PaymentConfig {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not isAdmin(caller)) {
       Runtime.trap("Unauthorized: Only admins can view payment config");
     };
     paymentConfig;

@@ -8,17 +8,6 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
-export const _CaffeineStorageCreateCertificateResult = IDL.Record({
-  'method' : IDL.Text,
-  'blob_hash' : IDL.Text,
-});
-export const _CaffeineStorageRefillInformation = IDL.Record({
-  'proposed_top_up_amount' : IDL.Opt(IDL.Nat),
-});
-export const _CaffeineStorageRefillResult = IDL.Record({
-  'success' : IDL.Opt(IDL.Bool),
-  'topped_up_amount' : IDL.Opt(IDL.Nat),
-});
 export const BlogPost = IDL.Record({
   'id' : IDL.Text,
   'title' : IDL.Text,
@@ -64,11 +53,6 @@ export const JobListing = IDL.Record({
   'company' : IDL.Text,
   'badge' : IDL.Opt(IDL.Text),
 });
-export const UserRole = IDL.Variant({
-  'admin' : IDL.Null,
-  'user' : IDL.Null,
-  'guest' : IDL.Null,
-});
 export const Resume = IDL.Record({
   'id' : IDL.Text,
   'overallScore' : IDL.Nat,
@@ -104,39 +88,11 @@ export const PaymentConfig = IDL.Record({
 });
 
 export const idlService = IDL.Service({
-  '_caffeineStorageBlobIsLive' : IDL.Func(
-      [IDL.Vec(IDL.Nat8)],
-      [IDL.Bool],
-      ['query'],
-    ),
-  '_caffeineStorageBlobsToDelete' : IDL.Func(
-      [],
-      [IDL.Vec(IDL.Vec(IDL.Nat8))],
-      ['query'],
-    ),
-  '_caffeineStorageConfirmBlobDeletion' : IDL.Func(
-      [IDL.Vec(IDL.Vec(IDL.Nat8))],
-      [],
-      [],
-    ),
-  '_caffeineStorageCreateCertificate' : IDL.Func(
-      [IDL.Text],
-      [_CaffeineStorageCreateCertificateResult],
-      [],
-    ),
-  '_caffeineStorageRefillCashier' : IDL.Func(
-      [IDL.Opt(_CaffeineStorageRefillInformation)],
-      [_CaffeineStorageRefillResult],
-      [],
-    ),
-  '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
-  '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'addBlogPost' : IDL.Func([BlogPost], [], []),
   'addJobSource' : IDL.Func([JobSource], [], []),
   'addProduct' : IDL.Func([Product], [], []),
   'addVaga' : IDL.Func([JobListing], [], []),
   'approveTestimonial' : IDL.Func([IDL.Text], [], []),
-  'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'deleteBlogPost' : IDL.Func([IDL.Text], [], []),
   'deleteExpiredVagas' : IDL.Func([], [IDL.Nat], []),
   'deleteJobSource' : IDL.Func([IDL.Text], [], []),
@@ -151,7 +107,6 @@ export const idlService = IDL.Service({
   'getBlogPost' : IDL.Func([IDL.Text], [IDL.Opt(BlogPost)], ['query']),
   'getBlogPosts' : IDL.Func([], [IDL.Vec(BlogPost)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
-  'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getJobSources' : IDL.Func([], [IDL.Vec(JobSource)], ['query']),
   'getLastUpdateTime' : IDL.Func([], [IDL.Int], ['query']),
   'getMyResumes' : IDL.Func([], [IDL.Vec(Resume)], ['query']),
@@ -163,7 +118,9 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'getVagas' : IDL.Func([], [IDL.Vec(JobListing)], ['query']),
+  'initialize' : IDL.Func([], [], []),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'registerAdmin' : IDL.Func([IDL.Principal], [], []),
   'requestReport' : IDL.Func([IDL.Text], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'savePaymentConfig' : IDL.Func([PaymentConfig], [], []),
@@ -179,17 +136,6 @@ export const idlService = IDL.Service({
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
-  const _CaffeineStorageCreateCertificateResult = IDL.Record({
-    'method' : IDL.Text,
-    'blob_hash' : IDL.Text,
-  });
-  const _CaffeineStorageRefillInformation = IDL.Record({
-    'proposed_top_up_amount' : IDL.Opt(IDL.Nat),
-  });
-  const _CaffeineStorageRefillResult = IDL.Record({
-    'success' : IDL.Opt(IDL.Bool),
-    'topped_up_amount' : IDL.Opt(IDL.Nat),
-  });
   const BlogPost = IDL.Record({
     'id' : IDL.Text,
     'title' : IDL.Text,
@@ -235,11 +181,6 @@ export const idlFactory = ({ IDL }) => {
     'company' : IDL.Text,
     'badge' : IDL.Opt(IDL.Text),
   });
-  const UserRole = IDL.Variant({
-    'admin' : IDL.Null,
-    'user' : IDL.Null,
-    'guest' : IDL.Null,
-  });
   const Resume = IDL.Record({
     'id' : IDL.Text,
     'overallScore' : IDL.Nat,
@@ -275,39 +216,11 @@ export const idlFactory = ({ IDL }) => {
   });
   
   return IDL.Service({
-    '_caffeineStorageBlobIsLive' : IDL.Func(
-        [IDL.Vec(IDL.Nat8)],
-        [IDL.Bool],
-        ['query'],
-      ),
-    '_caffeineStorageBlobsToDelete' : IDL.Func(
-        [],
-        [IDL.Vec(IDL.Vec(IDL.Nat8))],
-        ['query'],
-      ),
-    '_caffeineStorageConfirmBlobDeletion' : IDL.Func(
-        [IDL.Vec(IDL.Vec(IDL.Nat8))],
-        [],
-        [],
-      ),
-    '_caffeineStorageCreateCertificate' : IDL.Func(
-        [IDL.Text],
-        [_CaffeineStorageCreateCertificateResult],
-        [],
-      ),
-    '_caffeineStorageRefillCashier' : IDL.Func(
-        [IDL.Opt(_CaffeineStorageRefillInformation)],
-        [_CaffeineStorageRefillResult],
-        [],
-      ),
-    '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
-    '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'addBlogPost' : IDL.Func([BlogPost], [], []),
     'addJobSource' : IDL.Func([JobSource], [], []),
     'addProduct' : IDL.Func([Product], [], []),
     'addVaga' : IDL.Func([JobListing], [], []),
     'approveTestimonial' : IDL.Func([IDL.Text], [], []),
-    'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'deleteBlogPost' : IDL.Func([IDL.Text], [], []),
     'deleteExpiredVagas' : IDL.Func([], [IDL.Nat], []),
     'deleteJobSource' : IDL.Func([IDL.Text], [], []),
@@ -322,7 +235,6 @@ export const idlFactory = ({ IDL }) => {
     'getBlogPost' : IDL.Func([IDL.Text], [IDL.Opt(BlogPost)], ['query']),
     'getBlogPosts' : IDL.Func([], [IDL.Vec(BlogPost)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
-    'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getJobSources' : IDL.Func([], [IDL.Vec(JobSource)], ['query']),
     'getLastUpdateTime' : IDL.Func([], [IDL.Int], ['query']),
     'getMyResumes' : IDL.Func([], [IDL.Vec(Resume)], ['query']),
@@ -334,7 +246,9 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getVagas' : IDL.Func([], [IDL.Vec(JobListing)], ['query']),
+    'initialize' : IDL.Func([], [], []),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'registerAdmin' : IDL.Func([IDL.Principal], [], []),
     'requestReport' : IDL.Func([IDL.Text], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'savePaymentConfig' : IDL.Func([PaymentConfig], [], []),

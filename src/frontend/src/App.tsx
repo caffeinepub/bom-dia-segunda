@@ -5,6 +5,7 @@ import CidadePage from "@/components/CidadePage";
 import Concursos from "@/components/Concursos";
 import Contato from "@/components/Contato";
 import Depoimentos from "@/components/Depoimentos";
+import EbooksBanner from "@/components/EbooksBanner";
 import Estatisticas from "@/components/Estatisticas";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
@@ -162,6 +163,7 @@ export default function App() {
           }}
         />
         <Mentoria onInscricao={() => setShowMentoriaInscricao(true)} />
+        <EbooksBanner />
         <Loja onViewProduct={(id) => setProductId(id)} />
         <Concursos />
         <Blog onReadPost={(id) => setBlogPostId(id)} />

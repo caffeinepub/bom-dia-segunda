@@ -1,0 +1,137 @@
+// Version: 1.0.0
+type BlogPost__543622485 =
+  {
+    author : Text;
+    content : Text;
+    createdAt : Int;
+    id : Text;
+    imageUrl : Text;
+    published : Bool;
+    summary : Text;
+    tags : [Text];
+    title : Text;
+    updatedAt : Int
+  };
+type Data__791452850<K, V> =
+  {var count : Nat__490723111; kvs : [var ?(K, V)]};
+type Internal__8484328<K, V> =
+  {children : [var ?Node__46230540<K, V>]; data : Data__791452850<K, V>};
+type JobListing__535247011 =
+  {
+    applyUrl : Text;
+    area : Text;
+    badge : ?Text;
+    city : Text;
+    company : Text;
+    id : Text;
+    jobType : Text;
+    postedAt : Int;
+    salary : Text;
+    source : Text;
+    title : Text
+  };
+type JobSource__722219603 =
+  {
+    active : Bool;
+    createdAt : Int;
+    id : Text;
+    name : Text;
+    notes : Text;
+    region : Text;
+    url : Text
+  };
+type Leaf__809889148<K, V> = {data : Data__791452850<K, V>};
+type Nat__490723111 = Nat__920180692;
+type Nat__920180692 = Nat;
+type Node__46230540<K, V> =
+  {#internal : Internal__8484328<K, V>; #leaf : Leaf__809889148<K, V>};
+type PaymentConfig__125380827 =
+  {
+    mercadoPagoKey : Text;
+    paypalClientId : Text;
+    pixKey : Text;
+    updatedAt : Int
+  };
+type Product__853085059 =
+  {
+    available : Bool;
+    category : Text;
+    createdAt : Int;
+    description : Text;
+    id : Text;
+    imageUrl : Text;
+    name : Text;
+    paymentLink : Text;
+    price : Float
+  };
+type Resume__322838093 =
+  {
+    acceptanceRate : Nat;
+    atsScore : Nat;
+    competencies : [Text];
+    createdAt : Int;
+    fileName : Text;
+    highlightSkills : [Text];
+    id : Text;
+    improvements : [Text];
+    jobDesc : Text;
+    linkedinTips : [Text];
+    linkedinUrl : Text;
+    overallScore : Nat;
+    pdfGenerated : Bool;
+    reportRequested : Bool;
+    userId : Principal
+  };
+type Testimonial__393323594 =
+  {
+    approved : Bool;
+    city : Text;
+    createdAt : Int;
+    id : Text;
+    name : Text;
+    profession : Text;
+    text : Text
+  };
+type UserProfile__491224006 = {name : Text};
+actor {
+  stable adminMap :
+    {var root : Node__46230540<Principal, Bool>; var size : Nat__490723111};
+  stable blogPosts :
+    {
+      var root : Node__46230540<Text, BlogPost__543622485>;
+      var size : Nat__490723111
+    };
+  stable var firstLogin : Bool;
+  stable jobListings :
+    {
+      var root : Node__46230540<Text, JobListing__535247011>;
+      var size : Nat__490723111
+    };
+  stable jobSources :
+    {
+      var root : Node__46230540<Text, JobSource__722219603>;
+      var size : Nat__490723111
+    };
+  stable var lastJobUpdateTime : Int;
+  stable var paymentConfig : ?PaymentConfig__125380827;
+  stable products :
+    {
+      var root : Node__46230540<Text, Product__853085059>;
+      var size : Nat__490723111
+    };
+  stable resumes :
+    {
+      var root : Node__46230540<Text, Resume__322838093>;
+      var size : Nat__490723111
+    };
+  stable testimonials :
+    {
+      var root : Node__46230540<Text, Testimonial__393323594>;
+      var size : Nat__490723111
+    };
+  stable userProfiles :
+    {
+      var root : Node__46230540<Principal, UserProfile__491224006>;
+      var size : Nat__490723111
+    }
+};

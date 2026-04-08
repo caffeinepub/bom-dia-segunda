@@ -88,43 +88,12 @@ export interface Testimonial {
   'approved' : boolean,
 }
 export interface UserProfile { 'name' : string }
-export type UserRole = { 'admin' : null } |
-  { 'user' : null } |
-  { 'guest' : null };
-export interface _CaffeineStorageCreateCertificateResult {
-  'method' : string,
-  'blob_hash' : string,
-}
-export interface _CaffeineStorageRefillInformation {
-  'proposed_top_up_amount' : [] | [bigint],
-}
-export interface _CaffeineStorageRefillResult {
-  'success' : [] | [boolean],
-  'topped_up_amount' : [] | [bigint],
-}
 export interface _SERVICE {
-  '_caffeineStorageBlobIsLive' : ActorMethod<[Uint8Array], boolean>,
-  '_caffeineStorageBlobsToDelete' : ActorMethod<[], Array<Uint8Array>>,
-  '_caffeineStorageConfirmBlobDeletion' : ActorMethod<
-    [Array<Uint8Array>],
-    undefined
-  >,
-  '_caffeineStorageCreateCertificate' : ActorMethod<
-    [string],
-    _CaffeineStorageCreateCertificateResult
-  >,
-  '_caffeineStorageRefillCashier' : ActorMethod<
-    [[] | [_CaffeineStorageRefillInformation]],
-    _CaffeineStorageRefillResult
-  >,
-  '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
-  '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'addBlogPost' : ActorMethod<[BlogPost], undefined>,
   'addJobSource' : ActorMethod<[JobSource], undefined>,
   'addProduct' : ActorMethod<[Product], undefined>,
   'addVaga' : ActorMethod<[JobListing], undefined>,
   'approveTestimonial' : ActorMethod<[string], undefined>,
-  'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'deleteBlogPost' : ActorMethod<[string], undefined>,
   'deleteExpiredVagas' : ActorMethod<[], bigint>,
   'deleteJobSource' : ActorMethod<[string], undefined>,
@@ -139,7 +108,6 @@ export interface _SERVICE {
   'getBlogPost' : ActorMethod<[string], [] | [BlogPost]>,
   'getBlogPosts' : ActorMethod<[], Array<BlogPost>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
-  'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getJobSources' : ActorMethod<[], Array<JobSource>>,
   'getLastUpdateTime' : ActorMethod<[], bigint>,
   'getMyResumes' : ActorMethod<[], Array<Resume>>,
@@ -147,7 +115,9 @@ export interface _SERVICE {
   'getProducts' : ActorMethod<[], Array<Product>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'getVagas' : ActorMethod<[], Array<JobListing>>,
+  'initialize' : ActorMethod<[], undefined>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'registerAdmin' : ActorMethod<[Principal], undefined>,
   'requestReport' : ActorMethod<[string], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'savePaymentConfig' : ActorMethod<[PaymentConfig], undefined>,

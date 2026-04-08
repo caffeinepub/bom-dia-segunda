@@ -642,15 +642,6 @@ export default function Vagas({
             </Button>
           </div>
         )}
-        {/* Ver mais vagas */}
-        <div className="text-center mt-6">
-          <Button
-            className="bg-[#d7350d] text-white hover:bg-[#b82d0b] px-10 py-3 text-base font-semibold rounded-full shadow"
-            onClick={() => setVisibleCount((c) => Math.min(c + 12, 120))}
-          >
-            Ver mais vagas
-          </Button>
-        </div>
       </div>
     </section>
   );

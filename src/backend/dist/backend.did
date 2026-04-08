@@ -1,0 +1,126 @@
+type UserProfile = record {name: text;};
+type Testimonial = 
+ record {
+   approved: bool;
+   city: text;
+   createdAt: int;
+   id: text;
+   name: text;
+   profession: text;
+   "text": text;
+ };
+type Resume = 
+ record {
+   acceptanceRate: nat;
+   atsScore: nat;
+   competencies: vec text;
+   createdAt: int;
+   fileName: text;
+   highlightSkills: vec text;
+   id: text;
+   improvements: vec text;
+   jobDesc: text;
+   linkedinTips: vec text;
+   linkedinUrl: text;
+   overallScore: nat;
+   pdfGenerated: bool;
+   reportRequested: bool;
+   userId: principal;
+ };
+type Product = 
+ record {
+   available: bool;
+   category: text;
+   createdAt: int;
+   description: text;
+   id: text;
+   imageUrl: text;
+   name: text;
+   paymentLink: text;
+   price: float64;
+ };
+type PaymentConfig = 
+ record {
+   mercadoPagoKey: text;
+   paypalClientId: text;
+   pixKey: text;
+   updatedAt: int;
+ };
+type JobSource = 
+ record {
+   active: bool;
+   createdAt: int;
+   id: text;
+   name: text;
+   notes: text;
+   region: text;
+   url: text;
+ };
+type JobListing = 
+ record {
+   applyUrl: text;
+   area: text;
+   badge: opt text;
+   city: text;
+   company: text;
+   id: text;
+   jobType: text;
+   postedAt: int;
+   salary: text;
+   source: text;
+   title: text;
+ };
+type BlogPost = 
+ record {
+   author: text;
+   content: text;
+   createdAt: int;
+   id: text;
+   imageUrl: text;
+   published: bool;
+   summary: text;
+   tags: vec text;
+   title: text;
+   updatedAt: int;
+ };
+service : {
+  addBlogPost: (post: BlogPost) -> ();
+  addJobSource: (source: JobSource) -> ();
+  addProduct: (product: Product) -> ();
+  addVaga: (job: JobListing) -> ();
+  approveTestimonial: (id: text) -> ();
+  deleteBlogPost: (id: text) -> ();
+  deleteExpiredVagas: () -> (nat);
+  deleteJobSource: (id: text) -> ();
+  deleteProduct: (id: text) -> ();
+  deleteTestimonial: (id: text) -> ();
+  getActiveJobSources: () -> (vec JobSource) query;
+  getAllBlogPosts: () -> (vec BlogPost) query;
+  getAllProducts: () -> (vec Product) query;
+  getAllResumes: () -> (vec Resume) query;
+  getAllTestimonials: () -> (vec Testimonial) query;
+  getApprovedTestimonials: () -> (vec Testimonial) query;
+  getBlogPost: (id: text) -> (opt BlogPost) query;
+  getBlogPosts: () -> (vec BlogPost) query;
+  getCallerUserProfile: () -> (opt UserProfile) query;
+  getJobSources: () -> (vec JobSource) query;
+  getLastUpdateTime: () -> (int) query;
+  getMyResumes: () -> (vec Resume) query;
+  getPaymentConfig: () -> (opt PaymentConfig) query;
+  getProducts: () -> (vec Product) query;
+  getUserProfile: (user: principal) -> (opt UserProfile) query;
+  getVagas: () -> (vec JobListing) query;
+  initialize: () -> ();
+  isCallerAdmin: () -> (bool) query;
+  registerAdmin: (user: principal) -> ();
+  requestReport: (resumeId: text) -> ();
+  saveCallerUserProfile: (profile: UserProfile) -> ();
+  savePaymentConfig: (config: PaymentConfig) -> ();
+  saveResume: (resume: Resume) -> ();
+  submitTestimonial: (testimonial: Testimonial) -> ();
+  triggerWeeklyUpdate: () -> ();
+  updateBlogPost: (post: BlogPost) -> ();
+  updateJobSource: (source: JobSource) -> ();
+  updateProduct: (product: Product) -> ();
+  updateResumeReportStatus: (resumeId: text, pdfGenerated: bool) -> ();
+}

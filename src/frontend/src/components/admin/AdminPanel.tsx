@@ -1,24 +1,141 @@
-import type { Resume as BaseResume } from "@/backend";
-import type {
-  BlogPost,
-  JobListing,
-  JobSource,
-  PaymentConfig,
-  Product,
-  ShoppingCustomer,
-  Testimonial,
-} from "@/backend.d";
-
-// Extend with CRM fields
-interface Resume extends BaseResume {
+// Local types (backend interface is minimal; all data managed frontend-side)
+interface Resume {
+  id: string;
   nome?: string;
   email?: string;
   whatsapp?: string;
+  fileName?: string;
   status?: string;
   relatorioSimples?: string;
   compraRelatorio?: boolean;
   relatorioCompleto?: string;
+  overallScore?: number;
+  atsScore?: number;
+  acceptanceRate?: number;
+  competencies?: string[];
+  improvements?: string[];
+  linkedinTips?: string[];
+  createdAt?: string;
+  jobDesc?: string;
 }
+
+interface BlogPost {
+  id: string;
+  title: string;
+  content: string;
+  excerpt?: string;
+  summary?: string;
+  author?: string;
+  category?: string;
+  date?: string;
+  readTime?: string | number;
+  image?: string;
+  imageUrl?: string;
+  tags?: string[];
+  enabled?: boolean;
+  published?: boolean;
+  createdAt?: bigint;
+  updatedAt?: bigint;
+}
+
+interface JobListing {
+  id: string;
+  title: string;
+  company: string;
+  city: string;
+  type?: string;
+  jobType?: string;
+  salary?: string;
+  badge?: string;
+  badges?: string[];
+  area?: string;
+  source?: string;
+  description?: string;
+  requirements?: string;
+  benefits?: string;
+  workload?: string;
+  regime?: string;
+  applyUrl?: string;
+  approved?: boolean;
+  compilationPeriod?: string;
+  postedAt?: bigint;
+}
+
+interface JobSource {
+  id: string;
+  name: string;
+  url: string;
+  region: string;
+  orientation?: string;
+  enabled?: boolean;
+  active?: boolean;
+  notes?: string;
+  createdAt?: bigint;
+}
+
+interface PaymentConfig {
+  id?: string;
+  provider?: string;
+  enabled?: boolean;
+  apiKey?: string;
+  pixKey?: string;
+  mercadoPagoKey?: string;
+  paypalClientId?: string;
+}
+
+interface Product {
+  id: string;
+  title?: string;
+  name?: string;
+  author?: string;
+  price?: string | number;
+  description?: string;
+  image?: string;
+  imageUrl?: string;
+  category?: string;
+  paymentLink?: string;
+  isPartner?: boolean;
+  enabled?: boolean;
+  available?: boolean;
+  createdAt?: bigint;
+}
+
+interface ShoppingCustomer {
+  id: string;
+  nome: string;
+  email: string;
+  telefone?: string;
+  cpf?: string;
+  whatsapp?: string;
+  endereco?: string;
+  logradouro?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  cidade?: string;
+  estado?: string;
+  cep?: string;
+  produtoId?: string;
+  produtoNome?: string;
+  valorCompra?: number;
+  status?: string;
+  dataPedido?: string;
+  createdAt?: bigint;
+}
+
+interface Testimonial {
+  id: string;
+  name: string;
+  profession?: string;
+  role?: string;
+  city?: string;
+  text: string;
+  rating: number;
+  approved: boolean;
+  avatar?: string;
+  createdAt?: bigint;
+}
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -139,7 +256,8 @@ const SIDEBAR_ITEMS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   },
 ];
 
-function fmtDate(nanoseconds: bigint) {
+function fmtDate(nanoseconds: bigint | undefined | string) {
+  if (!nanoseconds) return "—";
   return new Date(Number(nanoseconds) / 1_000_000).toLocaleDateString("pt-BR");
 }
 
@@ -569,7 +687,8 @@ function VagasTab() {
     toast.success("Vaga removida.");
   }
 
-  function isExpired(postedAt: bigint) {
+  function isExpired(postedAt: bigint | undefined) {
+    if (!postedAt) return false;
     const posted = Number(postedAt) / 1_000_000;
     return Date.now() - posted > 10 * 24 * 60 * 60 * 1000;
   }
@@ -864,7 +983,7 @@ function CurriculosTab() {
   async function load() {
     try {
       const list = await actor!.getAllResumes();
-      setResumes(list);
+      setResumes(list as unknown as Resume[]);
     } catch {
       toast.error("Erro ao carregar currículos.");
     }
@@ -1320,13 +1439,13 @@ function CurriculosTab() {
                 )}
 
               {/* Competências */}
-              {selected.competencies?.length > 0 && (
+              {(selected.competencies?.length ?? 0) > 0 && (
                 <div>
                   <h4 className="font-semibold text-gray-700 mb-2">
                     Competências
                   </h4>
                   <div className="flex flex-wrap gap-2">
-                    {selected.competencies.map((c) => (
+                    {(selected.competencies ?? []).map((c) => (
                       <span
                         key={c}
                         className="text-xs bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded-full"
@@ -1339,13 +1458,13 @@ function CurriculosTab() {
               )}
 
               {/* Melhorias */}
-              {selected.improvements?.length > 0 && (
+              {(selected.improvements?.length ?? 0) > 0 && (
                 <div>
                   <h4 className="font-semibold text-gray-700 mb-2">
                     Sugestões de Melhoria
                   </h4>
                   <ol className="space-y-1 list-decimal list-inside">
-                    {selected.improvements.map((imp) => (
+                    {(selected.improvements ?? []).map((imp) => (
                       <li key={imp} className="text-xs text-gray-600">
                         {imp}
                       </li>
@@ -1355,13 +1474,13 @@ function CurriculosTab() {
               )}
 
               {/* LinkedIn tips */}
-              {selected.linkedinTips?.length > 0 && (
+              {(selected.linkedinTips?.length ?? 0) > 0 && (
                 <div>
                   <h4 className="font-semibold text-gray-700 mb-2">
                     Dicas LinkedIn
                   </h4>
                   <ul className="space-y-1">
-                    {selected.linkedinTips.map((t) => (
+                    {(selected.linkedinTips ?? []).map((t) => (
                       <li key={t} className="text-xs text-gray-600 flex gap-2">
                         <span className="text-blue-500">→</span>
                         {t}
@@ -1428,7 +1547,7 @@ function DepoimentosTab() {
   async function load() {
     try {
       const list = await actor!.getAllTestimonials();
-      setTestimonials(list);
+      setTestimonials(list as unknown as Testimonial[]);
     } catch {
       toast.error("Erro ao carregar depoimentos.");
     }
@@ -1577,14 +1696,11 @@ function BlogTab() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<BlogPost | null>(null);
   const [form, setForm] = useState<
-    Partial<
-      BlogPost & {
-        readTime: number;
-        status: string;
-        scheduledAt: string;
-        categories: string;
-      }
-    >
+    Partial<BlogPost> & {
+      status?: string;
+      scheduledAt?: string;
+      categories?: string;
+    }
   >({ published: false, status: "Rascunho" });
 
   async function load() {
@@ -1632,10 +1748,12 @@ function BlogTab() {
     };
     try {
       if (editing) {
-        await actor!.updateBlogPost(payload);
+        // biome-ignore lint/suspicious/noExplicitAny: bridging local and backend types
+        await actor!.updateBlogPost(payload as any);
         toast.success("Artigo atualizado!");
       } else {
-        await actor!.addBlogPost(payload);
+        // biome-ignore lint/suspicious/noExplicitAny: bridging local and backend types
+        await actor!.addBlogPost(payload as any);
         toast.success("Artigo criado!");
       }
       setOpen(false);
@@ -1662,7 +1780,8 @@ function BlogTab() {
       updatedAt: nowNano(),
     };
     try {
-      await actor!.updateBlogPost(updated);
+      // biome-ignore lint/suspicious/noExplicitAny: bridging local and backend types
+      await actor!.updateBlogPost(updated as any);
       toast.success(
         updated.published ? "Artigo publicado!" : "Artigo despublicado!",
       );
@@ -1720,9 +1839,9 @@ function BlogTab() {
               <TableRow key={p.id} data-ocid={`admin.blog.item.${i + 1}`}>
                 <TableCell className="font-medium">{p.title}</TableCell>
                 <TableCell>{p.author}</TableCell>
-                <TableCell>{getStatusBadge(p.published)}</TableCell>
+                <TableCell>{getStatusBadge(p.published ?? false)}</TableCell>
                 <TableCell className="text-xs text-gray-400">
-                  {p.tags.slice(0, 3).join(", ")}
+                  {(p.tags ?? []).slice(0, 3).join(", ")}
                 </TableCell>
                 <TableCell className="text-xs">
                   {fmtDate(p.createdAt)}
@@ -2817,7 +2936,7 @@ function ClientesCRMSection({ resumes }: ClientesCRMSectionProps) {
       !q ||
       c.nome.toLowerCase().includes(q) ||
       c.email.toLowerCase().includes(q) ||
-      c.cpf.replace(/\D/g, "").includes(q.replace(/\D/g, ""));
+      (c.cpf ?? "").replace(/\D/g, "").includes(q.replace(/\D/g, ""));
     const matchStatus = statusFilter === "todos" || c.status === statusFilter;
     return matchSearch && matchStatus;
   });
@@ -3046,19 +3165,19 @@ function ClientesCRMSection({ resumes }: ClientesCRMSectionProps) {
                     {c.telefone}
                   </TableCell>
                   <TableCell className="text-sm font-mono">
-                    {maskCpf(c.cpf)}
+                    {maskCpf(c.cpf ?? "")}
                   </TableCell>
                   <TableCell className="text-sm max-w-[140px] truncate">
                     {c.produtoNome}
                   </TableCell>
                   <TableCell className="text-sm whitespace-nowrap font-medium">
-                    {fmtCurrency(c.valorCompra)}
+                    {fmtCurrency(c.valorCompra ?? 0)}
                   </TableCell>
                   <TableCell>
                     <span
-                      className={`inline-flex items-center text-xs px-2 py-0.5 rounded-full border font-medium ${statusBadgeClass(c.status)}`}
+                      className={`inline-flex items-center text-xs px-2 py-0.5 rounded-full border font-medium ${statusBadgeClass(c.status ?? "ativo")}`}
                     >
-                      {statusLabel(c.status)}
+                      {statusLabel(c.status ?? "ativo")}
                     </span>
                   </TableCell>
                   <TableCell className="text-xs text-gray-500 whitespace-nowrap">
@@ -3143,7 +3262,9 @@ function ClientesCRMSection({ resumes }: ClientesCRMSectionProps) {
                   </div>
                   <div>
                     <span className="text-gray-400 text-xs">CPF</span>
-                    <p className="font-mono">{maskCpf(viewCustomer.cpf)}</p>
+                    <p className="font-mono">
+                      {maskCpf(viewCustomer.cpf ?? "")}
+                    </p>
                   </div>
                   <div>
                     <span className="text-gray-400 text-xs">E-mail</span>
@@ -3199,16 +3320,16 @@ function ClientesCRMSection({ resumes }: ClientesCRMSectionProps) {
                   <div>
                     <span className="text-gray-400 text-xs">Valor</span>
                     <p className="font-bold text-[#d7350d]">
-                      {fmtCurrency(viewCustomer.valorCompra)}
+                      {fmtCurrency(viewCustomer.valorCompra ?? 0)}
                     </p>
                   </div>
                   <div>
                     <span className="text-gray-400 text-xs">Status</span>
                     <p>
                       <span
-                        className={`inline-flex items-center text-xs px-2 py-0.5 rounded-full border font-medium ${statusBadgeClass(viewCustomer.status)}`}
+                        className={`inline-flex items-center text-xs px-2 py-0.5 rounded-full border font-medium ${statusBadgeClass(viewCustomer.status ?? "ativo")}`}
                       >
-                        {statusLabel(viewCustomer.status)}
+                        {statusLabel(viewCustomer.status ?? "ativo")}
                       </span>
                     </p>
                   </div>
@@ -3557,9 +3678,9 @@ function LojaTab() {
         actor!.getPaymentConfig(),
         actor!.getAllResumes(),
       ]);
-      setProducts(list);
-      if (conf) setPayConf(conf as PaymentConfig);
-      setResumes(resumeList as Resume[]);
+      setProducts(list as unknown as Product[]);
+      if (conf) setPayConf(conf as unknown as PaymentConfig);
+      setResumes(resumeList as unknown as Resume[]);
     } catch {
       toast.error("Erro ao carregar loja.");
     }
@@ -3599,10 +3720,12 @@ function LojaTab() {
     };
     try {
       if (editing) {
-        await actor!.updateProduct(payload);
+        // biome-ignore lint/suspicious/noExplicitAny: bridging local and backend types
+        await actor!.updateProduct(payload as any);
         toast.success("Produto atualizado!");
       } else {
-        await actor!.addProduct(payload);
+        // biome-ignore lint/suspicious/noExplicitAny: bridging local and backend types
+        await actor!.addProduct(payload as any);
         toast.success("Produto adicionado!");
       }
       setOpen(false);
@@ -3625,7 +3748,8 @@ function LojaTab() {
   async function handleToggleAvailable(p: Product) {
     const updated = { ...p, available: !p.available };
     try {
-      await actor!.updateProduct(updated);
+      // biome-ignore lint/suspicious/noExplicitAny: bridging local and backend types
+      await actor!.updateProduct(updated as any);
       toast.success(
         updated.available ? "Produto habilitado!" : "Produto desabilitado!",
       );
@@ -3723,7 +3847,7 @@ function LojaTab() {
                     <TableCell className="font-medium">{p.name}</TableCell>
                     <TableCell>{p.category}</TableCell>
                     <TableCell>
-                      R$ {p.price.toFixed(2).replace(".", ",")}
+                      R$ {Number(p.price).toFixed(2).replace(".", ",")}
                     </TableCell>
                     <TableCell>
                       <Badge variant={p.available ? "default" : "secondary"}>
@@ -4224,7 +4348,8 @@ function FontesTab() {
       // Se não há fontes cadastradas, pré-popular com as padrão
       if (list.length === 0) {
         for (const s of DEFAULT_SOURCES) {
-          await actor!.addJobSource(s);
+          // biome-ignore lint/suspicious/noExplicitAny: bridging local and backend types
+          await actor!.addJobSource(s as any);
         }
         list = await actor!.getJobSources();
       }
@@ -4266,10 +4391,12 @@ function FontesTab() {
     };
     try {
       if (editing) {
-        await actor!.updateJobSource(payload);
+        // biome-ignore lint/suspicious/noExplicitAny: bridging local and backend types
+        await actor!.updateJobSource(payload as any);
         toast.success("Fonte atualizada!");
       } else {
-        await actor!.addJobSource(payload);
+        // biome-ignore lint/suspicious/noExplicitAny: bridging local and backend types
+        await actor!.addJobSource(payload as any);
         toast.success("Fonte adicionada!");
       }
       setOpen(false);
